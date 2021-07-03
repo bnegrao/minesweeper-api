@@ -4,20 +4,56 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class Board {
+    public enum OPEN_CELL_RESULT {
+        /**
+         * The Cell opened at the given position has a mine.
+         * As consequence all the remaining closed cells are opened.
+         */
+        IS_A_MINE,
+
+        /**
+         * The Cell was opened and it was unarmed.
+         * Surrounding unarmed cells could have been opened as consequence.
+         */
+        OPENED_OK,
+
+        /**
+         * The Cell was opened previously, the board was not modified by this operation.
+         */
+        NO_CHANGE,
+
+        /**
+         * The Cell opened was unarmed and there are no unarmed
+         * cells left to be opened (game won)
+         */
+        BOARD_COMPLETE,
+    }
+    private int nRows;
+    private int nColumns;
+    private int nMines;
     private TreeMap<Position, Cell> cells;
 
     public Board (int nRows, int nColumns, int nMines) {
-        cells = populateBoard(nRows, nColumns, nMines);
+        this.nRows = nRows;
+        this.nColumns = nColumns;
+        this.nMines = nMines;
+        this.cells = populateBoard(nRows, nColumns, nMines);
     }
 
+    public Cell[][] getCells () {
+        // TODO
+        throw new RuntimeException("not implemented");
+    }
+
+
     /**
-     * Opens the Cell at the given Position, perform extra logic that can open other cells,
-     * then returns a Cell[][]
+     * Opens the Cell at the given Position, performs extra logic that can open other cells,
+     * then returns a OPEN_CELL_RESULT to indicate what happened.
      *
      * @param position
-     * @return
+     * @return OPEN_CELL_RESULT
      */
-    public Cell[][] openCell(Position position) {
+    public OPEN_CELL_RESULT openCell(Position position) {
         // TODO
         throw new RuntimeException("not implemented");
     }

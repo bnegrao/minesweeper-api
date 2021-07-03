@@ -5,7 +5,7 @@ package com.zica.minesweeper.game;
  */
 public enum FLAGS {
     /**
-     * Flag to indicate that a closed cell may contain a mine
+     * Flag to indicate that a closed cell contains a mine
      */
     MINE,
 
