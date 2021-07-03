@@ -36,7 +36,9 @@ public class Application implements CommandLineRunner {
             console.printf("%s\n", board);
 
             String command = console.readLine("command: [open <position>|quit]");
-
+            if (command.equals("quit")){
+                System.exit(0);
+            }
         }
     }
 }
