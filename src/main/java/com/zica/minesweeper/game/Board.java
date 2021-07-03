@@ -1,7 +1,9 @@
 package com.zica.minesweeper.game;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Board {
     public enum OPEN_CELL_RESULT {
@@ -40,6 +42,9 @@ public class Board {
         this.cells = populateBoard(nRows, nColumns, nMines);
     }
 
+    /**
+     * @return The Cells in this Board in proper order.
+     */
     public Cell[][] getCells () {
         // TODO
         throw new RuntimeException("not implemented");
@@ -76,6 +81,11 @@ public class Board {
         return treeMap;
     }
 
+    public String toAsciiArt() {
+        // TODO
+        throw new RuntimeException("not implemented");
+    }
+
     private static int countAdjacentMines(Position position, Set<Position> minePositions, int nRows, int nColumns) {
         int r = position.getRow();
         int c = position.getColumn();
@@ -104,13 +114,18 @@ public class Board {
         return counter;
     }
 
-    private void updateMinesCountersInAllCells(TreeMap<Position, Cell> treeMap, Set<Position> minePositions) {
-        // TODO
-        throw new RuntimeException("not implemented");
-    }
-
     private static Set<Position> getRandomizedMinePositions(int nRows, int nColumns, int nMines) {
-        // TODO
-        throw new RuntimeException("not implemented");
+        Set<Position> randomPositions = new HashSet<Position>();
+        for (int i = 0; i<nMines; i++){
+            int randomRow = ThreadLocalRandom.current().nextInt(0, nRows);
+            int randomCol = ThreadLocalRandom.current().nextInt(0, nColumns);
+            Position randomPosition = new Position(randomRow, randomCol);
+            if (randomPositions.contains(randomPosition)){
+                i--;
+            } else {
+                randomPositions.add(randomPosition);
+            }
+        }
+        return randomPositions;
     }
 }
