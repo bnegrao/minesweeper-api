@@ -7,7 +7,7 @@ package com.zica.minesweeper.game;
  * In a Board of N rows and N columns, (row=0, column=0) is the position
  * of the top-left Cell while (row=N, column=N) is the bottom-right Cell
  */
-public class Position {
+public class Position implements Comparable {
 
     private int row;
     private int column;
@@ -15,6 +15,11 @@ public class Position {
     public Position(int row, int column) {
         this.row = row;
         this.column = column;
+    }
+
+    @Override
+    public int compareTo(Object other) {
+        return this.toString().compareTo(other.toString());
     }
 
     public int getRow() {
