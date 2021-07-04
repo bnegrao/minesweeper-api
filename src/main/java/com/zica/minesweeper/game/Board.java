@@ -83,12 +83,12 @@ public class Board {
 
     private void openSurroundingCells(Position position) {
         // TODO
-        throw RuntimeException ("Not Implemented");
+        throw new RuntimeException ("Not Implemented");
     }
 
     private void openAllCells() {
         // TODO
-        throw RuntimeException ("Not Implemented");
+        throw new RuntimeException ("Not Implemented");
     }
 
     private static TreeMap<Position, Cell> populateBoard(int nRows, int nColumns, int nMines) {
