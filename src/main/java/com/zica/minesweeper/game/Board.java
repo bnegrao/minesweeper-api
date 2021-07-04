@@ -7,6 +7,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Board {
     public enum OPEN_CELL_RESULT {
+
+        /**
+         * The position is invalid. The board was not modified by this operation.
+         */
+        INVALID_POSITION,
+
         /**
          * The Cell opened at the given position has a mine.
          * As consequence all the remaining closed cells are opened.
@@ -59,8 +65,30 @@ public class Board {
      * @return OPEN_CELL_RESULT
      */
     public OPEN_CELL_RESULT openCell(Position position) {
+        Cell cell = cells.get(position);
+        if (cell == null){
+            return OPEN_CELL_RESULT.INVALID_POSITION;
+        }
+        if (cell.isClosed() == false) {
+            return OPEN_CELL_RESULT.NO_CHANGE;
+        } else if (cell.isMine()) {
+            openAllCells();
+            return OPEN_CELL_RESULT.IS_A_MINE;
+        } else if (cell.getAdjacentMines() == 0) {
+            openSurroundingCells(cell.getPosition());
+        }
+        cell.setClosed(false);
+        return  OPEN_CELL_RESULT.OPENED_OK;
+    }
+
+    private void openSurroundingCells(Position position) {
         // TODO
-        throw new RuntimeException("not implemented");
+        throw RuntimeException ("Not Implemented");
+    }
+
+    private void openAllCells() {
+        // TODO
+        throw RuntimeException ("Not Implemented");
     }
 
     private static TreeMap<Position, Cell> populateBoard(int nRows, int nColumns, int nMines) {
@@ -82,8 +110,40 @@ public class Board {
     }
 
     public String toAsciiArt() {
-        // TODO
-        throw new RuntimeException("not implemented");
+        StringBuffer str = new StringBuffer();
+
+        for (Cell cell: cells.values()){
+            String art;
+            if (!cell.isClosed()) {
+                if (!cell.isMine()) {
+                    art = cell.getAdjacentMines() == 0 ? "." : Integer.toString(cell.getAdjacentMines());
+                } else {
+                    art = "@"; // this is a bomb
+                }
+
+            } else {
+                art = "X";
+            }
+            str.append(art + " ");
+            if (cell.getPosition().getColumn() == nColumns - 1) {
+                str.append("\n");
+            }
+        }
+
+//        for (int row = 0; row<nRows; row++){
+//            for (int col = 0; col <nColumns; col++){
+//                Cell cell = cells.get(new Position(row, col));
+//                String art;
+//                if (!cell.isClosed()) {
+//                    art = Integer.toString(cell.getAdjacentMines());
+//                } else {
+//                    art = "X";
+//                }
+//                str.append(art+ " ");
+//            }
+//            str.append("\n");
+//        }
+        return str.toString();
     }
 
     private static int countAdjacentMines(Position position, Set<Position> minePositions, int nRows, int nColumns) {
