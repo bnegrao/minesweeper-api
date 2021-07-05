@@ -1,51 +1,21 @@
 package com.zica.minesweeper.game;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Board {
-    public enum OPEN_CELL_RESULT {
-
-        /**
-         * The position is invalid. The board was not modified by this operation.
-         */
-        INVALID_POSITION,
-
-        /**
-         * The Cell opened at the given position has a mine.
-         * As consequence all the remaining closed cells are opened.
-         */
-        IS_A_MINE,
-
-        /**
-         * The Cell was opened and it was unarmed.
-         * Surrounding unarmed cells could have been opened as consequence.
-         */
-        OPENED_OK,
-
-        /**
-         * The Cell was opened previously, the board was not modified by this operation.
-         */
-        NO_CHANGE,
-
-        /**
-         * The Cell opened was unarmed and there are no unarmed
-         * cells left to be opened (game won)
-         */
-        BOARD_COMPLETE,
-    }
     private int nRows;
     private int nColumns;
     private int nMines;
+    private int unarmedClosedCellsCounter;
     private TreeMap<Position, Cell> cells;
 
     public Board (int nRows, int nColumns, int nMines) {
         this.nRows = nRows;
         this.nColumns = nColumns;
         this.nMines = nMines;
-        this.cells = populateBoard(nRows, nColumns, nMines);
+        this.cells = populateBoard();
+        this.unarmedClosedCellsCounter = ( nRows * nColumns ) - nMines;
     }
 
     /**
@@ -56,43 +26,91 @@ public class Board {
         throw new RuntimeException("not implemented");
     }
 
+    public ToggleFlagResult toggleFlagAt(Position position, Cell.Flags flag) {
+        Cell cell = cells.get(position);
+        if (cell == null){
+            return ToggleFlagResult.INVALID_POSITION;
+        }
+        if (!cell.isClosed()) {
+            return ToggleFlagResult.NO_CHANGE;
+        }
+        if (cell.getFlag() == flag) {
+            cell.setFlag(null);
+            return ToggleFlagResult.UNSET;
+        } else {
+            cell.setFlag(flag);
+            return ToggleFlagResult.SET;
+        }
+    }
+
 
     /**
      * Opens the Cell at the given Position, performs extra logic that can open other cells,
      * then returns a OPEN_CELL_RESULT to indicate what happened.
      *
-     * @param position
+     * @param position of the cell that should be opened
      * @return OPEN_CELL_RESULT
      */
-    public OPEN_CELL_RESULT openCell(Position position) {
+    public OpenCellResult openCellAt(Position position) {
         Cell cell = cells.get(position);
         if (cell == null){
-            return OPEN_CELL_RESULT.INVALID_POSITION;
+            return OpenCellResult.INVALID_POSITION;
         }
-        if (cell.isClosed() == false) {
-            return OPEN_CELL_RESULT.NO_CHANGE;
+        if (!cell.isClosed()) {
+            return OpenCellResult.NO_CHANGE;
         } else if (cell.isMine()) {
             openAllCells();
-            return OPEN_CELL_RESULT.IS_A_MINE;
-        } else if (cell.getAdjacentMines() == 0) {
-            openSurroundingCells(cell.getPosition());
+            return OpenCellResult.IS_A_MINE;
+        } else {
+            cell.setClosed(false);
+            unarmedClosedCellsCounter--;
+            if (cell.getAdjacentMines() == 0) {
+                openUnarmedAdjacentCells(cell.getPosition());
+            }
+            if (unarmedClosedCellsCounter == 0){
+                return OpenCellResult.BOARD_COMPLETE;
+            }
+            System.out.println(unarmedClosedCellsCounter);
+            return  OpenCellResult.OPENED_OK;
         }
-        cell.setClosed(false);
-        return  OPEN_CELL_RESULT.OPENED_OK;
     }
 
-    private void openSurroundingCells(Position position) {
-        // TODO
-        throw new RuntimeException ("Not Implemented");
+    private void openUnarmedAdjacentCells(Position position) {
+        List<Position> positionsOfCellWithNoSurroundingMines = new LinkedList<>();
+        for (Cell adjCell: getAdjacentClosedCells(position)){
+            if (!adjCell.isClosed()){
+                throw new RuntimeException("BUG! Cell at position " + adjCell.getPosition() + " should be closed!");
+            }
+            adjCell.setClosed(false);
+            unarmedClosedCellsCounter--;
+            if (adjCell.getAdjacentMines()==0){
+                positionsOfCellWithNoSurroundingMines.add(adjCell.getPosition());
+            }
+        }
+        for (Position pos: positionsOfCellWithNoSurroundingMines){
+            openUnarmedAdjacentCells(pos);
+        }
+    }
+
+    private List<Cell> getAdjacentClosedCells(Position position){
+        List<Cell> adjacentClosedCells = new LinkedList<>();
+        for (Position adjPosition: getAdjacentPositions(position)){
+            Cell adjCell = cells.get(adjPosition);
+            if (adjCell.isClosed()){
+                adjacentClosedCells.add(adjCell);
+            }
+        }
+        return adjacentClosedCells;
     }
 
     private void openAllCells() {
-        // TODO
-        throw new RuntimeException ("Not Implemented");
+        for (Cell cell: cells.values()){
+            cell.setClosed(false);
+        }
     }
 
-    private static TreeMap<Position, Cell> populateBoard(int nRows, int nColumns, int nMines) {
-        TreeMap<Position, Cell> treeMap = new TreeMap<Position, Cell>();
+    private TreeMap<Position, Cell> populateBoard() {
+        TreeMap<Position, Cell> treeMap = new TreeMap<>();
 
         Set<Position> minePositions = getRandomizedMinePositions(nRows, nColumns, nMines);
 
@@ -100,7 +118,7 @@ public class Board {
             for (int column = 0; column < nColumns; column++) {
                 Position position = new Position(row, column);
                 boolean isMine = minePositions.contains(position);
-                int adjacentMinesCounter = countAdjacentMines(position, minePositions, nRows, nColumns);
+                int adjacentMinesCounter = countAdjacentMines(position, minePositions);
                 Cell cell = new Cell(row, column, isMine, adjacentMinesCounter);
                 treeMap.put(position, cell);
             }
@@ -110,7 +128,7 @@ public class Board {
     }
 
     public String toAsciiArt() {
-        StringBuffer str = new StringBuffer();
+        StringBuilder str = new StringBuilder();
 
         for (Cell cell: cells.values()){
             String art;
@@ -120,33 +138,27 @@ public class Board {
                 } else {
                     art = "@"; // this is a bomb
                 }
-
             } else {
-                art = "X";
+                if (cell.getFlag() == null) {
+                    art = "X";
+                } else {
+                    if (cell.getFlag() == Cell.Flags.MINE) {
+                        art = "@";
+                    } else {
+                        art = "?";
+                    }
+                }
             }
-            str.append(art + " ");
+            str.append(art);
+            str.append(" ");
             if (cell.getPosition().getColumn() == nColumns - 1) {
                 str.append("\n");
             }
         }
-
-//        for (int row = 0; row<nRows; row++){
-//            for (int col = 0; col <nColumns; col++){
-//                Cell cell = cells.get(new Position(row, col));
-//                String art;
-//                if (!cell.isClosed()) {
-//                    art = Integer.toString(cell.getAdjacentMines());
-//                } else {
-//                    art = "X";
-//                }
-//                str.append(art+ " ");
-//            }
-//            str.append("\n");
-//        }
         return str.toString();
     }
 
-    private static int countAdjacentMines(Position position, Set<Position> minePositions, int nRows, int nColumns) {
+    private List<Position> getAdjacentPositions(Position position) {
         int r = position.getRow();
         int c = position.getColumn();
 
@@ -159,23 +171,30 @@ public class Board {
         Position bottomCenter = new Position( r + 1, c);
         Position bottomRight = new Position( r + 1, c + 1);
 
-        Position[] adjacentPositions = new Position[]{topLeft, topCenter, topRight, left, right, bottomLeft, bottomCenter, bottomRight};
+        Position[] possibleAdjacentPositions = new Position[]{topLeft, topCenter, topRight, left, right, bottomLeft, bottomCenter, bottomRight};
+        List<Position> adjacentPositions = new ArrayList<>();
 
-        int counter = 0;
-
-        for (Position adjacentPosition: adjacentPositions) {
-            int adjRow = adjacentPosition.getRow();
-            int adjCol = adjacentPosition.getColumn();
-            if ( adjRow >= 0 && adjRow < nRows && adjCol >= 0 && adjCol < nColumns ) {
-                if (minePositions.contains(adjacentPosition)) counter++;
+        for (Position possiblePosition: possibleAdjacentPositions) {
+            int adjRow = possiblePosition.getRow();
+            int adjCol = possiblePosition.getColumn();
+            if ( adjRow >= 0 && adjRow < this.nRows && adjCol >= 0 && adjCol < this.nColumns ) {
+                adjacentPositions.add(new Position(adjRow, adjCol));
             }
         }
+        return adjacentPositions;
+    }
 
+
+    private int countAdjacentMines(Position position, Set<Position> minePositions) {
+        int counter = 0;
+        for (Position adjacentPosition: getAdjacentPositions(position)) {
+            if (minePositions.contains(adjacentPosition)) counter++;
+        }
         return counter;
     }
 
     private static Set<Position> getRandomizedMinePositions(int nRows, int nColumns, int nMines) {
-        Set<Position> randomPositions = new HashSet<Position>();
+        Set<Position> randomPositions = new HashSet<>();
         for (int i = 0; i<nMines; i++){
             int randomRow = ThreadLocalRandom.current().nextInt(0, nRows);
             int randomCol = ThreadLocalRandom.current().nextInt(0, nColumns);
