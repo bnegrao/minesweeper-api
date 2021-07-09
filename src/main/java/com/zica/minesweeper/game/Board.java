@@ -4,11 +4,11 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Board {
-    private int nRows;
-    private int nColumns;
-    private int nMines;
+    private final int nRows;
+    private final int nColumns;
+    private final int nMines;
     private int unarmedClosedCellsCounter;
-    private TreeMap<Position, Cell> cells;
+    private final TreeMap<Position, Cell> cells;
 
     public Board (int nRows, int nColumns, int nMines) {
         this.nRows = nRows;
