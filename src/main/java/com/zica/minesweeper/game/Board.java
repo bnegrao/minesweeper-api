@@ -21,9 +21,18 @@ public class Board {
     /**
      * @return The Cells in this Board in proper order.
      */
-    public Cell[][] getCells () {
-        // TODO
-        throw new RuntimeException("not implemented");
+    public Cell[][] getCells2D() {
+        Cell[][] cellsArr = new Cell[nRows][nColumns];
+        for (int row = 0; row < nRows; row++) {
+            for (int column = 0; column < nColumns; column++) {
+                cellsArr[row][column] = cells.get(new Position(row, column));
+            }
+        }
+        return cellsArr;
+    }
+
+    public Collection<Cell> getCellsFlat(){
+        return cells.values();
     }
 
     public ToggleFlagResult toggleFlagAt(Position position, Cell.Flags flag) {
@@ -48,6 +57,8 @@ public class Board {
      * Opens the Cell at the given Position, performs extra logic that can open other cells,
      * then returns a OPEN_CELL_RESULT to indicate what happened.
      *
+     * Valid ranges for Position coordinates are from 0 to nRows-1 and 0 to nColumns-1
+     *
      * @param position of the cell that should be opened
      * @return OPEN_CELL_RESULT
      */
@@ -62,11 +73,7 @@ public class Board {
             openAllCells();
             return OpenCellResult.IS_A_MINE;
         } else {
-            cell.setClosed(false);
-            unarmedClosedCellsCounter--;
-            if (cell.getAdjacentMines() == 0) {
-                openUnarmedAdjacentCells(cell.getPosition());
-            }
+            recursiveOpen(cell);
             if (unarmedClosedCellsCounter == 0){
                 return OpenCellResult.BOARD_COMPLETE;
             }
@@ -75,20 +82,14 @@ public class Board {
         }
     }
 
-    private void openUnarmedAdjacentCells(Position position) {
-        List<Position> positionsOfCellWithNoSurroundingMines = new LinkedList<>();
-        for (Cell adjCell: getAdjacentClosedCells(position)){
-            if (!adjCell.isClosed()){
-                throw new RuntimeException("BUG! Cell at position " + adjCell.getPosition() + " should be closed!");
-            }
-            adjCell.setClosed(false);
+    // this implementation can raise StackOverflowException if the board has to many unarmed cells.
+    private void recursiveOpen(Cell cell) {
+        if (cell.isClosed()){
+            cell.open();
             unarmedClosedCellsCounter--;
-            if (adjCell.getAdjacentMines()==0){
-                positionsOfCellWithNoSurroundingMines.add(adjCell.getPosition());
-            }
         }
-        for (Position pos: positionsOfCellWithNoSurroundingMines){
-            openUnarmedAdjacentCells(pos);
+        for (Cell adjCell: getAdjacentClosedCells(cell.getPosition())) {
+            recursiveOpen(adjCell);
         }
     }
 
@@ -105,7 +106,7 @@ public class Board {
 
     private void openAllCells() {
         for (Cell cell: cells.values()){
-            cell.setClosed(false);
+            cell.open();
         }
     }
 
@@ -172,7 +173,7 @@ public class Board {
         Position bottomRight = new Position( r + 1, c + 1);
 
         Position[] possibleAdjacentPositions = new Position[]{topLeft, topCenter, topRight, left, right, bottomLeft, bottomCenter, bottomRight};
-        List<Position> adjacentPositions = new ArrayList<>();
+        List<Position> adjacentPositions = new LinkedList<>();
 
         for (Position possiblePosition: possibleAdjacentPositions) {
             int adjRow = possiblePosition.getRow();
@@ -183,7 +184,6 @@ public class Board {
         }
         return adjacentPositions;
     }
-
 
     private int countAdjacentMines(Position position, Set<Position> minePositions) {
         int counter = 0;

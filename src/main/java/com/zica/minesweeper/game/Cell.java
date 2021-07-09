@@ -50,8 +50,13 @@ public class Cell {
         return isClosed;
     }
 
-    public void setClosed(boolean closed) {
-        isClosed = closed;
+    public void setClosed(boolean closed) { isClosed = closed; }
+
+    /**
+     * Opens a cell. The same as setClosed(false) but more idiomatic
+     */
+    public void open() {
+        this.isClosed = false;
     }
 
     public boolean isMine() {

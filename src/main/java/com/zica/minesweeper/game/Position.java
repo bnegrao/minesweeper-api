@@ -4,8 +4,8 @@ package com.zica.minesweeper.game;
  * Position of a Cell in a Board.
  * 'row' is the vertical axis which grows from top to bottom,
  * 'column' is the horizontal axis which grows from left two right,
- * In a Board of N rows and N columns, (row=0, column=0) is the position
- * of the top-left Cell while (row=N, column=N) is the bottom-right Cell
+ * In a Board of N rows and M columns, (row=0, column=0) is the position
+ * of the top-left Cell while (row=N-1, column=M-1) is the bottom-right Cell
  */
 public class Position implements Comparable<Position> {
 

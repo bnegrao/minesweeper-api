@@ -1,7 +1,6 @@
 package com.zica.minesweeper.game;
 
 import java.util.Date;
-import java.util.Scanner;
 
 public class Game {
     private Board board;
@@ -26,7 +25,10 @@ public class Game {
         return result;
     }
 
-    public ToggleFlagResult toggleFlagAt(int row, int column, Cell.Flags flag) {
+    public ToggleFlagResult toggleFlagAt(int row, int column, Cell.Flags flag) throws GameIsOverException {
+        if (gameIsOver){
+            throw new GameIsOverException();
+        }
         return board.toggleFlagAt(new Position(row, column), flag);
     }
 
