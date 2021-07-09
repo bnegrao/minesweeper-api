@@ -52,7 +52,6 @@ public class Board {
         }
     }
 
-
     /**
      * Opens the Cell at the given Position, performs extra logic that can open other cells,
      * then returns a OPEN_CELL_RESULT to indicate what happened.
@@ -73,31 +72,36 @@ public class Board {
             openAllCells();
             return OpenCellResult.IS_A_MINE;
         } else {
-            recursiveOpen(cell);
+            openCellsWithNoAdjacentMines(cell);
             if (unarmedClosedCellsCounter == 0){
                 return OpenCellResult.BOARD_COMPLETE;
             }
-            System.out.println(unarmedClosedCellsCounter);
             return  OpenCellResult.OPENED_OK;
         }
     }
 
-    // this implementation can raise StackOverflowException if the board has to many unarmed cells.
-    private void recursiveOpen(Cell cell) {
-        if (cell.isClosed()){
-            cell.open();
-            unarmedClosedCellsCounter--;
-        }
-        for (Cell adjCell: getAdjacentClosedCells(cell.getPosition())) {
-            recursiveOpen(adjCell);
+    private void openCellsWithNoAdjacentMines(Cell startCell){
+        TreeSet<Position> stack = new TreeSet<>();
+        stack.add(startCell.getPosition());
+        while (!stack.isEmpty()){
+            Cell cell = this.cells.get(stack.pollFirst());
+            if (cell.isClosed()){
+                cell.open();
+                unarmedClosedCellsCounter--;
+                for (Cell adjCell: getAdjacentClosedUnarmedCells(cell.getPosition())){
+                    stack.add(adjCell.getPosition());
+                }
+            } else {
+                throw new RuntimeException("Bug! Cell at position "+ cell.getPosition() + " should be closed");
+            }
         }
     }
 
-    private List<Cell> getAdjacentClosedCells(Position position){
+    private List<Cell> getAdjacentClosedUnarmedCells(Position position){
         List<Cell> adjacentClosedCells = new LinkedList<>();
         for (Position adjPosition: getAdjacentPositions(position)){
             Cell adjCell = cells.get(adjPosition);
-            if (adjCell.isClosed()){
+            if (adjCell.isClosed() && !adjCell.isMine()){
                 adjacentClosedCells.add(adjCell);
             }
         }

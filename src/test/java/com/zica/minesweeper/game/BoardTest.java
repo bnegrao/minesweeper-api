@@ -80,6 +80,18 @@ public class BoardTest {
         board = new Board(100, 100, 0);
         result = board.openCellAt(new Position(50,50));
         assertEquals(BOARD_COMPLETE, result);
+
+        board = new Board(2, 2, 3);
+        Position position = null;
+        for (Cell cell: board.getCellsFlat()) {
+            if (cell.isMine() == false){
+                position = cell.getPosition();
+                break;
+            }
+        }
+        result = board.openCellAt(position);
+        System.out.println(board.toAsciiArt());
+        assertEquals(BOARD_COMPLETE, result);
     }
 
     @Test
@@ -93,9 +105,8 @@ public class BoardTest {
             }
         }
 
+        board.openCellAt(position);
         OpenCellResult result = board.openCellAt(position);
-        assertEquals(OPENED_OK, result);
-        result = board.openCellAt(position);
         assertEquals(NO_CHANGE, result);
     }
 
