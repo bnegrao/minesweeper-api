@@ -72,8 +72,14 @@ public class Board {
             openAllCells();
             return OpenCellResult.IS_A_MINE;
         } else {
-            openCellsWithNoAdjacentMines(cell);
+            if (cell.getAdjacentMines() == 0) {
+                openCellsWithNoAdjacentMines(cell);
+            } else {
+                cell.setClosed(false);
+                unarmedClosedCellsCounter--;
+            }
             if (unarmedClosedCellsCounter == 0){
+                openAllCells();
                 return OpenCellResult.BOARD_COMPLETE;
             }
             return  OpenCellResult.OPENED_OK;
@@ -88,8 +94,10 @@ public class Board {
             if (cell.isClosed()){
                 cell.open();
                 unarmedClosedCellsCounter--;
-                for (Cell adjCell: getAdjacentClosedUnarmedCells(cell.getPosition())){
-                    stack.add(adjCell.getPosition());
+                if (cell.getAdjacentMines()==0){
+                    for (Cell adjCell: getAdjacentClosedUnarmedCells(cell.getPosition())){
+                        stack.add(adjCell.getPosition());
+                    }
                 }
             } else {
                 throw new RuntimeException("Bug! Cell at position "+ cell.getPosition() + " should be closed");

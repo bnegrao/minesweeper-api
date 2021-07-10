@@ -24,9 +24,9 @@ public class ConsoleGameApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
         String email = "bnegrao@gmail.com";
-        int nRows = 3;
-        int nColumns = 3;
-        int nMines = 1;
+        int nRows = 10;
+        int nColumns = 10;
+        int nMines = 20;
 
         Game game = new Game(email, nRows, nColumns, nMines);
 
