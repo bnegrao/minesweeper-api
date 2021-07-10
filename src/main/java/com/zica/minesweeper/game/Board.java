@@ -14,7 +14,21 @@ public class Board {
         this.nRows = nRows;
         this.nColumns = nColumns;
         this.nMines = nMines;
-        this.cells = populateBoard();
+        this.cells = populateBoard(getRandomizedMinePositions(nRows, nColumns, nMines));
+        this.unarmedClosedCellsCounter = ( nRows * nColumns ) - nMines;
+    }
+
+    /**
+     * Creates a Board with mines at fixed places (i.e., not random)
+     * what enables the creation of precise unit tests.
+     * This constructor isn't public because it is not meant to be used for
+     * the creating of real games.
+     */
+    Board (int nRows, int nColumns, Set<Position> minePositions) {
+        this.nRows = nRows;
+        this.nColumns = nColumns;
+        this.nMines = minePositions.size();
+        this.cells = populateBoard(minePositions);
         this.unarmedClosedCellsCounter = ( nRows * nColumns ) - nMines;
     }
 
@@ -53,6 +67,13 @@ public class Board {
     }
 
     /**
+     * convenience method that creates a Position instance and invokes openCellAt(Position)
+     */
+    public OpenCellResult openCellAt(int row, int column) {
+        return this.openCellAt(new Position(row, column));
+    }
+
+    /**
      * Opens the Cell at the given Position, performs extra logic that can open other cells,
      * then returns a OPEN_CELL_RESULT to indicate what happened.
      *
@@ -84,6 +105,14 @@ public class Board {
             }
             return  OpenCellResult.OPENED_OK;
         }
+    }
+
+    /**
+     * @return Counter of Cells in this Board that are closed and "unarmed", i.e., don't hold a mine.
+     * The counter is updated during each openCellAt() invocation.
+     */
+    public int getUnarmedClosedCellsCounter(){
+        return unarmedClosedCellsCounter;
     }
 
     private void openCellsWithNoAdjacentMines(Cell startCell){
@@ -122,10 +151,8 @@ public class Board {
         }
     }
 
-    private TreeMap<Position, Cell> populateBoard() {
+    private TreeMap<Position, Cell> populateBoard(Set<Position> minePositions) {
         TreeMap<Position, Cell> treeMap = new TreeMap<>();
-
-        Set<Position> minePositions = getRandomizedMinePositions(nRows, nColumns, nMines);
 
         for (int row = 0; row < nRows; row++) {
             for (int column = 0; column < nColumns; column++) {

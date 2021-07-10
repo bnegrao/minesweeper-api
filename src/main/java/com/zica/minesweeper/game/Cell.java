@@ -49,6 +49,7 @@ public class Cell {
     public boolean isClosed() {
         return isClosed;
     }
+    public boolean isOpened() { return !isClosed; }
 
     public void setClosed(boolean closed) { isClosed = closed; }
 
