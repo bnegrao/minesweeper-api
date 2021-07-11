@@ -1,5 +1,7 @@
 package com.zica.minesweeper.game;
 
+import org.springframework.data.annotation.PersistenceConstructor;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -8,13 +10,13 @@ public class Board {
     private final int nColumns;
     private final int nMines;
     private int unarmedClosedCellsCounter;
-    private final TreeMap<Position, Cell> cells;
+    private final TreeMap<Position, Cell> cellTree;
 
     public Board (int nRows, int nColumns, int nMines) {
         this.nRows = nRows;
         this.nColumns = nColumns;
         this.nMines = nMines;
-        this.cells = populateBoard(getRandomizedMinePositions(nRows, nColumns, nMines));
+        this.cellTree = populateBoard(getRandomizedMinePositions(nRows, nColumns, nMines));
         this.unarmedClosedCellsCounter = ( nRows * nColumns ) - nMines;
     }
 
@@ -28,8 +30,29 @@ public class Board {
         this.nRows = nRows;
         this.nColumns = nColumns;
         this.nMines = minePositions.size();
-        this.cells = populateBoard(minePositions);
+        this.cellTree = populateBoard(minePositions);
         this.unarmedClosedCellsCounter = ( nRows * nColumns ) - nMines;
+    }
+
+    @PersistenceConstructor
+    Board (int nRows, int nColumns, int nMines, int unarmedClosedCellsCounter, TreeMap<Position, Cell> cellTree){
+        this.nRows = nRows;
+        this.nColumns = nColumns;
+        this.nMines = nMines;
+        this.unarmedClosedCellsCounter = unarmedClosedCellsCounter;
+        this.cellTree = cellTree;
+    }
+
+    public int getnRows() {
+        return nRows;
+    }
+
+    public int getnColumns() {
+        return nColumns;
+    }
+
+    public int getnMines() {
+        return nMines;
     }
 
     /**
@@ -39,18 +62,18 @@ public class Board {
         Cell[][] cellsArr = new Cell[nRows][nColumns];
         for (int row = 0; row < nRows; row++) {
             for (int column = 0; column < nColumns; column++) {
-                cellsArr[row][column] = cells.get(new Position(row, column));
+                cellsArr[row][column] = cellTree.get(new Position(row, column));
             }
         }
         return cellsArr;
     }
 
     public Collection<Cell> getCellsFlat(){
-        return cells.values();
+        return cellTree.values();
     }
 
     public ToggleFlagResult toggleFlagAt(Position position, Cell.Flags flag) {
-        Cell cell = cells.get(position);
+        Cell cell = cellTree.get(position);
         if (cell == null){
             return ToggleFlagResult.INVALID_POSITION;
         }
@@ -83,7 +106,7 @@ public class Board {
      * @return OPEN_CELL_RESULT
      */
     public OpenCellResult openCellAt(Position position) {
-        Cell cell = cells.get(position);
+        Cell cell = cellTree.get(position);
         if (cell == null){
             return OpenCellResult.INVALID_POSITION;
         }
@@ -119,7 +142,7 @@ public class Board {
         TreeSet<Position> stack = new TreeSet<>();
         stack.add(startCell.getPosition());
         while (!stack.isEmpty()){
-            Cell cell = this.cells.get(stack.pollFirst());
+            Cell cell = this.cellTree.get(stack.pollFirst());
             if (cell.isClosed()){
                 cell.open();
                 unarmedClosedCellsCounter--;
@@ -137,7 +160,7 @@ public class Board {
     private List<Cell> getAdjacentClosedUnarmedCells(Position position){
         List<Cell> adjacentClosedCells = new LinkedList<>();
         for (Position adjPosition: getAdjacentPositions(position)){
-            Cell adjCell = cells.get(adjPosition);
+            Cell adjCell = cellTree.get(adjPosition);
             if (adjCell.isClosed() && !adjCell.isMine()){
                 adjacentClosedCells.add(adjCell);
             }
@@ -146,7 +169,7 @@ public class Board {
     }
 
     private void openAllCells() {
-        for (Cell cell: cells.values()){
+        for (Cell cell: cellTree.values()){
             cell.open();
         }
     }
@@ -170,7 +193,7 @@ public class Board {
     public String toAsciiArt() {
         StringBuilder str = new StringBuilder();
 
-        for (Cell cell: cells.values()){
+        for (Cell cell: cellTree.values()){
             String art;
             if (!cell.isClosed()) {
                 if (!cell.isMine()) {

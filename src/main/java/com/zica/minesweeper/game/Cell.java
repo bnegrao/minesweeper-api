@@ -1,5 +1,7 @@
 package com.zica.minesweeper.game;
 
+import org.springframework.data.annotation.PersistenceConstructor;
+
 /**
  * A Cell in a Board of the Minesweeper game.
  */
@@ -30,6 +32,15 @@ public class Cell {
         this.position = new Position(row, column);
         this.flag = null;
         this.isClosed = true;
+        this.isMine = isMine;
+        this.adjacentMines = adjacentMines;
+    }
+
+    @PersistenceConstructor
+    Cell(Position position, Flags flag, boolean isClosed, boolean isMine, int adjacentMines) {
+        this.position = position;
+        this.flag = flag;
+        this.isClosed = isClosed;
         this.isMine = isMine;
         this.adjacentMines = adjacentMines;
     }
