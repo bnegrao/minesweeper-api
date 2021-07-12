@@ -35,7 +35,7 @@ public class Board {
     }
 
     @PersistenceConstructor
-    Board (int nRows, int nColumns, int nMines, int unarmedClosedCellsCounter, TreeMap<Position, Cell> cellTree){
+    protected Board (int nRows, int nColumns, int nMines, int unarmedClosedCellsCounter, TreeMap<Position, Cell> cellTree){
         this.nRows = nRows;
         this.nColumns = nColumns;
         this.nMines = nMines;

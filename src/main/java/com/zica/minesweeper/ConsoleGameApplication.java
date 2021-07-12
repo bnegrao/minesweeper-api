@@ -10,13 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.util.Optional;
 import java.util.Scanner;
 
-@SpringBootApplication
+/**
+ * This application is a Game with an interactive prompt that you can play locally at the console.
+ */
+//@SpringBootApplication()
 @EnableMongoRepositories(basePackages = "com.zica.minesweeper.repository")
 public class ConsoleGameApplication implements CommandLineRunner {
 
@@ -30,7 +32,7 @@ public class ConsoleGameApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws InterruptedException {
         String email = "bnegrao@gmail.com";
         int nRows = 10;
         int nColumns = 10;
@@ -41,6 +43,9 @@ public class ConsoleGameApplication implements CommandLineRunner {
         Scanner scanner = new Scanner(System.in);
 
         String validCommands = "[open <row,column>|mine <row,column>|question <row,column>|quit|restart|save|resume <gameid>]";
+
+        // give some time to mongodb driver finish to load
+        Thread.sleep(2000);
 
         while (true) {
             System.out.println(game.getBoardAsAsciiArt());

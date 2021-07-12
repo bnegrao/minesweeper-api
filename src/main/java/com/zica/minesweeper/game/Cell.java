@@ -37,7 +37,7 @@ public class Cell {
     }
 
     @PersistenceConstructor
-    Cell(Position position, Flags flag, boolean isClosed, boolean isMine, int adjacentMines) {
+    protected Cell(Position position, Flags flag, boolean isClosed, boolean isMine, int adjacentMines) {
         this.position = position;
         this.flag = flag;
         this.isClosed = isClosed;
