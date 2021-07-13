@@ -34,7 +34,7 @@ public class GameService {
         }
         Game game = opGame.get();
         OpenCellResult openCellResult = game.openCellAt(row, column);
-        if (game.isGameOver()) {
+        if (game.getGameStatus() != Game.GameStatus.RUNNING) {
             repository.delete(game);
         } else if (openCellResult == OpenCellResult.OPENED_OK) {
             // updates the game on the database after modifying its state
@@ -53,11 +53,23 @@ public class GameService {
     public GameDTO convertEntityToDTO(Game game) {
         GameDTO gameDTO = new GameDTO();
         gameDTO.setCells(convertEntityToDTO(game.getCells()));
-        gameDTO.setGameOver(game.isGameOver());
+        gameDTO.setGameStatus(convertEntityToDTO(game.getGameStatus()));
         gameDTO.setId(game.getId());
         gameDTO.setPlayerEmail(game.getPlayerEmail());
         gameDTO.setStartDate(game.getStartDate());
         return gameDTO;
+    }
+
+    private GameDTO.GameStatus convertEntityToDTO(Game.GameStatus gameStatus) {
+        switch (gameStatus) {
+            case RUNNING:
+                return GameDTO.GameStatus.RUNNING;
+            case GAME_LOST:
+                return GameDTO.GameStatus.GAME_LOST;
+            case GAME_WON:
+                return GameDTO.GameStatus.GAME_WON;
+        }
+        throw new RuntimeException("GameStatus "+ gameStatus + " cannot be converted");
     }
 
     private CellDTO[][] convertEntityToDTO(Cell[][] cells) {

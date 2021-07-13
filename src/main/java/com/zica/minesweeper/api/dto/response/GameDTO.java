@@ -6,11 +6,16 @@ import java.util.Date;
 
 @ApiModel
 public class GameDTO {
+
+    public enum GameStatus {
+        RUNNING, GAME_WON, GAME_LOST
+    }
+
     private String id;
     private CellDTO[][] cells;
     private String playerEmail;
     private Date startDate;
-    private boolean isGameOver;
+    private GameStatus gameStatus;
 
     public String getId() {
         return id;
@@ -44,11 +49,11 @@ public class GameDTO {
         this.startDate = startDate;
     }
 
-    public boolean isGameOver() {
-        return isGameOver;
+    public GameStatus getGameStatus() {
+        return gameStatus;
     }
 
-    public void setGameOver(boolean gameOver) {
-        this.isGameOver = gameOver;
+    public void setGameStatus(GameStatus gameStatus) {
+        this.gameStatus = gameStatus;
     }
 }
