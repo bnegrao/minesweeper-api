@@ -50,7 +50,7 @@ public class GameService {
         return convertEntityToDTO(game);
     }
 
-    public GameDTO convertEntityToDTO(Game game) {
+    private GameDTO convertEntityToDTO(Game game) {
         GameDTO gameDTO = new GameDTO();
         gameDTO.setCells(convertEntityToDTO(game.getCells()));
         gameDTO.setGameStatus(convertEntityToDTO(game.getGameStatus()));
@@ -82,11 +82,11 @@ public class GameService {
         return cellDTO2D;
     }
 
-    public Game convertDTOtoEntity(StartGameDTO dto) {
+    private Game convertDTOtoEntity(StartGameDTO dto) {
         return new Game(dto.getPlayerEmail(), dto.getRows(), dto.getColumns(), dto.getMines());
     }
 
-    public CellDTO convertEntityToDTO(Cell cell) {
+    private CellDTO convertEntityToDTO(Cell cell) {
         CellDTO cellDTO = new CellDTO();
         if (cell.isOpened()){
             cellDTO.setProperties(new CellPropertiesDTO(cell.getAdjacentMines(), cell.isMine()));
