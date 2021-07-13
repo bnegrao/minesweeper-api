@@ -60,13 +60,13 @@ public class Game {
     }
 
     /**
-     * Opens the Cell at the given position, returns the OpenCellResult and potentially
-     * updates the value of 'gameStatus' property depending on the OpenCellResult returned.
-     * @throws GameIsOverException if the game is not in GameStatus.RUNNING
+     * Opens the Cell at the given position, returns the OpenCellResult potentially
+     * updating the value of 'gameStatus' property depending on the OpenCellResult returned.
+     * @throws GameIsOverException if current gameStatus is not 'RUNNING'
      */
     public OpenCellResult openCellAt(int row, int column) throws GameIsOverException {
         if (gameStatus != GameStatus.RUNNING){
-            throw new GameIsOverException();
+            throw new GameIsOverException(gameStatus);
         }
         OpenCellResult result = board.openCellAt(new Position(row, column));
         if (result == OpenCellResult.BOARD_COMPLETE) {
@@ -79,7 +79,7 @@ public class Game {
 
     public ToggleFlagResult toggleFlagAt(int row, int column, Cell.Flags flag) throws GameIsOverException {
         if (gameStatus != GameStatus.RUNNING){
-            throw new GameIsOverException();
+            throw new GameIsOverException(gameStatus);
         }
         return board.toggleFlagAt(new Position(row, column), flag);
     }

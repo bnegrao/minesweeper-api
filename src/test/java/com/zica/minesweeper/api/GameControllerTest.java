@@ -43,15 +43,18 @@ public class GameControllerTest {
 
         assertEquals("asdf@asdf.com", gameDTO.getPlayerEmail());
         assertNotNull(gameDTO.getId());
+        assertEquals(GameDTO.GameStatus.RUNNING, gameDTO.getGameStatus());
         assertEquals(5, gameDTO.getCells().length);
         assertEquals(5, gameDTO.getCells()[0].length);
         assertNull(gameDTO.getCells()[0][0].getProperties());
     }
 
     @Test
-    public void testOpenCell() throws Exception {
+    public void testOpenExistingClosedCell_thenItsPropertiesShouldBecomeVisible() throws Exception {
         GameDTO gameDTO = postNewGame(new StartGameDTO("asdf@asdf.com", 5, 5, 3));
         String gameId = gameDTO.getId();
+
+        // opening cell at position 0,0
         MvcResult result = mvc.perform(put("/game/" + gameId)
                 .param("row", "0")
                 .param("column", "0"))
@@ -63,6 +66,53 @@ public class GameControllerTest {
         gameDTO = objectMapper.readValue(responseBody, GameDTO.class);
 
         assertNotNull(gameDTO.getCells()[0][0].getProperties());
+    }
+
+    /**
+     * Creating a Game with 0 mines. After opening the first cell the game
+     * should transition to GAME_WON status and be removed from the database.
+     * After that, if I try to open any cell, the http status should be 404
+     * because the game no longer exists on the database
+     */
+    @Test
+    public void testOpenCellAfterGameIsOver_thenShouldReceive404GameNotFound() throws Exception {
+
+        GameDTO gameDTO = postNewGame(new StartGameDTO("asdf@asdf.com", 5, 5, 0));
+        String gameId = gameDTO.getId();
+
+        // opening cell at position 0,0
+        MvcResult result = mvc.perform(put("/game/" + gameId)
+                .param("row", "0")
+                .param("column", "0"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = result.getResponse().getContentAsString();
+        gameDTO = objectMapper.readValue(responseBody, GameDTO.class);
+
+        assertEquals(GameDTO.GameStatus.GAME_WON, gameDTO.getGameStatus());
+
+        mvc.perform(put("/game/" + gameId)
+                .param("row", "0")
+                .param("column", "0"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    public void testOpeningACellInInvalidPosition_thenResultShouldBeHttp400() throws Exception {
+        GameDTO gameDTO = postNewGame(new StartGameDTO("asdf@asdf.com", 5, 5, 3));
+        String gameId = gameDTO.getId();
+
+        // opening cell at position 6,-1
+        mvc.perform(put("/game/" + gameId)
+                .param("row", "6")
+                .param("column", "-1"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
     }
 
     private GameDTO postNewGame(StartGameDTO startGameDTO) throws Exception {

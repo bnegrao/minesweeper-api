@@ -4,8 +4,11 @@ import com.zica.minesweeper.api.dto.request.StartGameDTO;
 import com.zica.minesweeper.api.dto.response.CellDTO;
 import com.zica.minesweeper.api.dto.response.GameDTO;
 import com.zica.minesweeper.api.dto.response.CellPropertiesDTO;
+import com.zica.minesweeper.api.exceptions.GameIdNotFoundException;
+import com.zica.minesweeper.api.exceptions.InvalidCellPositionException;
 import com.zica.minesweeper.game.Cell;
 import com.zica.minesweeper.game.Game;
+import com.zica.minesweeper.game.GameIsOverException;
 import com.zica.minesweeper.game.OpenCellResult;
 import com.zica.minesweeper.repository.GameRepository;
 import org.springframework.stereotype.Component;
@@ -25,12 +28,11 @@ public class GameService {
      * Retrieves the game from the database then opens the Cell at the given position.
      * If after opening the Cell is detected that the game is over, the Game is deleted
      * from the database.
-     * @throws IllegalArgumentException if a game with the given gameId is not found or if the Cell position is invalid.
      */
-    public GameDTO openCell(String gameId, int row, int column) throws IllegalArgumentException {
+    public GameDTO openCell(String gameId, int row, int column) throws GameIdNotFoundException, InvalidCellPositionException, GameIsOverException {
         Optional<Game> opGame = repository.findById(gameId);
         if (opGame.isEmpty()){
-            throw new IllegalArgumentException("Game with id " + gameId + " does not exist");
+            throw new GameIdNotFoundException("Game with id " + gameId + " does not exist");
         }
         Game game = opGame.get();
         OpenCellResult openCellResult = game.openCellAt(row, column);
@@ -40,7 +42,7 @@ public class GameService {
             // updates the game on the database after modifying its state
             repository.save(game);
         } else if (openCellResult == OpenCellResult.INVALID_POSITION){
-            throw new IllegalArgumentException("There is no cell at position "+row+","+column);
+            throw new InvalidCellPositionException(row, column);
         }
         return convertEntityToDTO(game);
     }

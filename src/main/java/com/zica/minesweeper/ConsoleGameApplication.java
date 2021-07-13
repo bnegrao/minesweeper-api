@@ -1,9 +1,6 @@
 package com.zica.minesweeper;
 
-import com.zica.minesweeper.game.Cell;
-import com.zica.minesweeper.game.Game;
-import com.zica.minesweeper.game.OpenCellResult;
-import com.zica.minesweeper.game.ToggleFlagResult;
+import com.zica.minesweeper.game.*;
 import com.zica.minesweeper.repository.GameRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +29,7 @@ public class ConsoleGameApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws InterruptedException {
+    public void run(String... args) throws InterruptedException, GameIsOverException {
         String email = "bnegrao@gmail.com";
         int nRows = 10;
         int nColumns = 10;

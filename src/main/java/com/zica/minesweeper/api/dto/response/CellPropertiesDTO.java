@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 
 @ApiModel(description = "Properties of a CellDTO. This object is only visible after a Cell is opened")
 public class CellPropertiesDTO {
+
     private int adjacentMines;
     private boolean isMine;
 
