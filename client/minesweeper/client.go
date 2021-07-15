@@ -3,7 +3,6 @@ package minesweeper
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -45,7 +44,7 @@ func (client *Client) StartGame(startGameDTO dtos.StartGameDTO) (*dtos.GameDTO, 
 	}
 
 	if response.StatusCode != 201 {
-		return nil, errors.New(fmt.Sprintf("server returned status %s and body %s", response.Status, responseData))
+		return nil, fmt.Errorf("server returned status %s and body %s", response.Status, responseData)
 	}
 
 	fmt.Println(string(responseData))
