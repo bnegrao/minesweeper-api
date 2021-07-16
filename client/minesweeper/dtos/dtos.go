@@ -21,5 +21,5 @@ type GameDTO struct {
 	Cells       [][]CellDTO `json:"cells"`
 	PlayerEmail string      `json:"playerEmail"`
 	StartDate   string      `json:"startDate"`
-	GameStatus  string      `json:"gameStatus"`
+	GameStatus  string      `json:"gameStatus"` //RUNNING, GAME_WON, GAME_LOST
 }
