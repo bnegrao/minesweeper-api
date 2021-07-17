@@ -47,8 +47,6 @@ func (client *Client) StartGame(startGameDTO dtos.StartGameDTO) (*dtos.GameDTO, 
 		return nil, fmt.Errorf("server returned status %s and body %s", response.Status, responseData)
 	}
 
-	fmt.Println(string(responseData))
-
 	gameDTO := new(dtos.GameDTO)
 	err = json.Unmarshal(responseData, gameDTO)
 	if err != nil {
