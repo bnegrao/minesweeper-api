@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class Converter {
-
-    public static GameDTO convertEntityToDTO(Game game) {
+    
+    public GameDTO convertEntityToDTO(Game game) {
         GameDTO gameDTO = new GameDTO();
         gameDTO.setCells(convertEntityToDTO(game.getCells()));
         gameDTO.setGameStatus(convertEntityToDTO(game.getGameStatus()));
@@ -21,7 +21,7 @@ public class Converter {
         return gameDTO;
     }
 
-    public static GameDTO.GameStatus convertEntityToDTO(Game.GameStatus gameStatus) {
+    public GameDTO.GameStatus convertEntityToDTO(Game.GameStatus gameStatus) {
         switch (gameStatus) {
             case RUNNING:
                 return GameDTO.GameStatus.RUNNING;
@@ -33,7 +33,7 @@ public class Converter {
         throw new RuntimeException("GameStatus "+ gameStatus + " cannot be converted");
     }
 
-    public static CellDTO[][] convertEntityToDTO(Cell[][] cells) {
+    public CellDTO[][] convertEntityToDTO(Cell[][] cells) {
         CellDTO[][] cellDTO2D = new CellDTO[cells.length][cells[0].length];
         for (int row = 0; row < cells.length; row++){
             for (int column = 0; column < cells[0].length; column++){
@@ -43,11 +43,11 @@ public class Converter {
         return cellDTO2D;
     }
 
-    public static Game convertDTOtoEntity(StartGameDTO dto) {
+    public Game convertDTOtoEntity(StartGameDTO dto) {
         return new Game(dto.getPlayerEmail(), dto.getRows(), dto.getColumns(), dto.getMines());
     }
 
-    public static CellDTO convertEntityToDTO(Cell cell) {
+    public CellDTO convertEntityToDTO(Cell cell) {
         CellDTO cellDTO = new CellDTO();
         if (cell.isOpened()){
             cellDTO.setProperties(new CellPropertiesDTO(cell.getAdjacentMines(), cell.isMine()));

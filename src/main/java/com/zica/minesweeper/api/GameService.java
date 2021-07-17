@@ -1,12 +1,9 @@
 package com.zica.minesweeper.api;
 
 import com.zica.minesweeper.api.dto.request.StartGameDTO;
-import com.zica.minesweeper.api.dto.response.CellDTO;
 import com.zica.minesweeper.api.dto.response.GameDTO;
-import com.zica.minesweeper.api.dto.response.CellPropertiesDTO;
 import com.zica.minesweeper.api.exceptions.GameIdNotFoundException;
 import com.zica.minesweeper.api.exceptions.InvalidCellPositionException;
-import com.zica.minesweeper.game.Cell;
 import com.zica.minesweeper.game.Game;
 import com.zica.minesweeper.game.GameIsOverException;
 import com.zica.minesweeper.game.OpenCellResult;
@@ -19,9 +16,11 @@ import java.util.Optional;
 public class GameService {
 
     private GameRepository repository;
+    private Converter converter;
 
-    public GameService(GameRepository repository){
+    public GameService(GameRepository repository, Converter converter){
         this.repository = repository;
+        this.converter = converter;
     }
 
     /**
@@ -44,55 +43,13 @@ public class GameService {
         } else if (openCellResult == OpenCellResult.INVALID_POSITION){
             throw new InvalidCellPositionException(row, column);
         }
-        return convertEntityToDTO(game);
+        return converter.convertEntityToDTO(game);
     }
 
     public GameDTO startGame(StartGameDTO dto){
-        Game game = repository.save(convertDTOtoEntity(dto));
-        return convertEntityToDTO(game);
+        Game game = repository.save(converter.convertDTOtoEntity(dto));
+        return converter.convertEntityToDTO(game);
     }
 
-    private GameDTO convertEntityToDTO(Game game) {
-        GameDTO gameDTO = new GameDTO();
-        gameDTO.setCells(convertEntityToDTO(game.getCells()));
-        gameDTO.setGameStatus(convertEntityToDTO(game.getGameStatus()));
-        gameDTO.setId(game.getId());
-        gameDTO.setPlayerEmail(game.getPlayerEmail());
-        gameDTO.setStartDate(game.getStartDate());
-        return gameDTO;
-    }
 
-    private GameDTO.GameStatus convertEntityToDTO(Game.GameStatus gameStatus) {
-        switch (gameStatus) {
-            case RUNNING:
-                return GameDTO.GameStatus.RUNNING;
-            case GAME_LOST:
-                return GameDTO.GameStatus.GAME_LOST;
-            case GAME_WON:
-                return GameDTO.GameStatus.GAME_WON;
-        }
-        throw new RuntimeException("GameStatus "+ gameStatus + " cannot be converted");
-    }
-
-    private CellDTO[][] convertEntityToDTO(Cell[][] cells) {
-        CellDTO[][] cellDTO2D = new CellDTO[cells.length][cells[0].length];
-        for (int row = 0; row < cells.length; row++){
-            for (int column = 0; column < cells[0].length; column++){
-                cellDTO2D[row][column] = convertEntityToDTO(cells[row][column]);
-            }
-        }
-        return cellDTO2D;
-    }
-
-    private Game convertDTOtoEntity(StartGameDTO dto) {
-        return new Game(dto.getPlayerEmail(), dto.getRows(), dto.getColumns(), dto.getMines());
-    }
-
-    private CellDTO convertEntityToDTO(Cell cell) {
-        CellDTO cellDTO = new CellDTO();
-        if (cell.isOpened()){
-            cellDTO.setProperties(new CellPropertiesDTO(cell.getAdjacentMines(), cell.isMine()));
-        }
-        return cellDTO;
-    }
 }
