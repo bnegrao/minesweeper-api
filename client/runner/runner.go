@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/bnegrao/minesweeper-api/client/minesweeper"
 	"github.com/bnegrao/minesweeper-api/client/minesweeper/dtos"
@@ -21,19 +22,21 @@ func main() {
 
 		switch startMenuOption {
 		case ui.StartMenuOptions.START_NEW_GAME:
-			var uiStartGameResponse *ui.StartGameUIResponse
-			uiStartGameResponse, err = ui.StartGame()
+			var uiResponse *ui.StartGameUIResponse
+			uiResponse, err = ui.StartGame()
 			if err != nil {
-				continue
+				break
 			}
-			gameDTO, err = startGame(uiStartGameResponse)
+			gameDTO, err = startGame(uiResponse)
 		case ui.StartMenuOptions.RESUME_GAME:
 			var playerEmail string
 			playerEmail, err = ui.ResumeGame()
 			if err != nil {
-				continue
+				break
 			}
 			gameDTO, err = resumeLastGame(playerEmail)
+		case ui.StartMenuOptions.QUIT:
+			os.Exit(0)
 		default:
 			panic(fmt.Sprintf("I can't handle option '%s'", startMenuOption))
 		}
@@ -47,14 +50,15 @@ func main() {
 			ui.PrintBoard(gameDTO.Cells)
 			var err error
 			option := ui.OpenCellMenu()
-
+			ui.PrintBoard(gameDTO.Cells)
 			switch option {
 			case ui.OpenCellMenuOptions.OPEN_CELL:
-				var uiGetCellPositionResponde *ui.GetCellPositionResponse
-				uiGetCellPositionResponde, err = ui.GetCellPosition(len(gameDTO.Cells), len(gameDTO.Cells[0]))
+				var uiResponse *ui.GetCellPositionResponse
+				uiResponse, err = ui.GetCellPosition(len(gameDTO.Cells), len(gameDTO.Cells[0]))
 				if err != nil {
-					gameDTO, err = openCell(uiGetCellPositionResponde)
+					break
 				}
+				gameDTO, err = openCell(gameDTO.Id, uiResponse.Row, uiResponse.Column)
 			case ui.OpenCellMenuOptions.SET_QUESTION_MARK:
 				panic("Not Implemented")
 
@@ -64,7 +68,7 @@ func main() {
 			case ui.OpenCellMenuOptions.SAVE_AND_QUIT:
 				panic("Not Implemented")
 
-			case ui.OpenCellMenuOptions.QUIT_WHITHOUT_SAVING:
+			case ui.OpenCellMenuOptions.QUIT_WITHOUT_SAVING:
 				panic("Not Implemented")
 			}
 
@@ -73,11 +77,20 @@ func main() {
 				continue
 			}
 		}
+
+		if gameDTO.GameStatus == "GAME_WON" {
+			ui.GameWon(gameDTO.Cells)
+		} else {
+			ui.GameLost(gameDTO.Cells)
+		}
+
 	}
 }
 
-func openCell(options *ui.GetCellPositionResponse) (*dtos.GameDTO, error) {
-	return nil, errors.New("Not implemented")
+func openCell(gameId string, row int, column int) (*dtos.GameDTO, error) {
+	// subtractin 1 from each position coordinate because the
+	// backend API handles positions starting from 0.
+	return msClient.OpenCellAt(gameId, row-1, column-1)
 }
 
 func resumeLastGame(playerEmail string) (*dtos.GameDTO, error) {

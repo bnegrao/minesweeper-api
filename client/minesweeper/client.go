@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/bnegrao/minesweeper-api/client/minesweeper/dtos"
@@ -22,7 +23,7 @@ func New(serverUrl string) *Client {
 	client := new(Client)
 	client.ServerUrl = serverUrl
 	client.httpClient = http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 50000 * time.Second,
 	}
 	return client
 }
@@ -38,12 +39,33 @@ func (client *Client) StartGame(startGameDTO dtos.StartGameDTO) (*dtos.GameDTO, 
 		return nil, err
 	}
 
+	return getGameDTOFromResponse(response, 201)
+}
+
+func (client *Client) OpenCellAt(gameId string, row int, column int) (*dtos.GameDTO, error) {
+
+	url := client.ServerUrl + "/" + gameId + "?row=" + intToString(row) + "&column=" + intToString(column)
+
+	httpRequest, err := http.NewRequest("PUT", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.httpClient.Do(httpRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return getGameDTOFromResponse(response, 200)
+}
+
+func getGameDTOFromResponse(response *http.Response, successHttpStatusCode int) (*dtos.GameDTO, error) {
 	responseData, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	if response.StatusCode != 201 {
+	if response.StatusCode != successHttpStatusCode {
 		return nil, fmt.Errorf("server returned status %s and body %s", response.Status, responseData)
 	}
 
@@ -54,4 +76,8 @@ func (client *Client) StartGame(startGameDTO dtos.StartGameDTO) (*dtos.GameDTO, 
 	}
 
 	return gameDTO, nil
+}
+
+func intToString(i int) string {
+	return strconv.Itoa(i)
 }

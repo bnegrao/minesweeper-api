@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -23,7 +24,35 @@ type GetCellPositionResponse struct {
 }
 
 func GetCellPosition(nRows int, nColumns int) (*GetCellPositionResponse, error) {
-	return nil, errors.New("Not implemented")
+	re := regexp.MustCompile(`\d+ \d+`)
+	for {
+		input, err := ReadInput(messages.AskCellPosition, "")
+		if err != nil {
+			fmt.Println("ERROR: ", err, " Please try again.")
+			continue
+		}
+		match := re.MatchString(input)
+		if !match {
+			fmt.Printf("Position '%s' is invalid. Please enter in the pattern `\\d+ \\d+`", input)
+			continue
+		}
+		inputTokens := strings.Split(input, " ")
+		row := parseInt(inputTokens[0])
+		column := parseInt(inputTokens[1])
+		if row < 1 || row > nRows {
+			fmt.Printf("Row number '%d' is invalid. Please choose a number between '%d' and '%d'.", row, 1, nRows)
+			continue
+		}
+		if column < 1 || column > nColumns {
+			fmt.Printf("Column number '%d' is invalid. Please choose a number between '%d' and '%d'.", column, 1, nColumns)
+			continue
+		}
+		return &GetCellPositionResponse{
+			Row:    row,
+			Column: column,
+		}, nil
+	}
+
 }
 
 type StartGameUIResponse struct {
@@ -33,28 +62,16 @@ type StartGameUIResponse struct {
 	NMines      int
 }
 
-type OrderStatusType string
-
-var OrderStatus = struct {
-	APPROVED         OrderStatusType
-	APPROVAL_PENDING OrderStatusType
-	REJECTED         OrderStatusType
-	REVISION_PENDING OrderStatusType
-}{
-	APPROVED:         "approved",
-	APPROVAL_PENDING: "approval pending",
-	REJECTED:         "rejected",
-	REVISION_PENDING: "revision pending",
-}
-
 type StartMenuOption string
 
 var StartMenuOptions = struct {
 	START_NEW_GAME StartMenuOption
 	RESUME_GAME    StartMenuOption
+	QUIT           StartMenuOption
 }{
 	START_NEW_GAME: "1",
 	RESUME_GAME:    "2",
+	QUIT:           "q",
 }
 
 // returns one of the values in the var ui.StartMenuOptions
@@ -62,12 +79,11 @@ func StartMenu() StartMenuOption {
 	for {
 		option, err := ReadInput(messages.StartMenu, string(StartMenuOptions.START_NEW_GAME))
 		if err != nil {
-			fmt.Println(err)
-			fmt.Println("Please try again.")
+			fmt.Println("ERROR: ", err, " Please try again.")
 			continue
 		}
 		switch StartMenuOption(option) {
-		case StartMenuOptions.START_NEW_GAME, StartMenuOptions.RESUME_GAME:
+		case StartMenuOptions.START_NEW_GAME, StartMenuOptions.RESUME_GAME, StartMenuOptions.QUIT:
 			return StartMenuOption(option)
 		default:
 			fmt.Printf("Option '%s' is invalid, please try again", option)
@@ -78,17 +94,17 @@ func StartMenu() StartMenuOption {
 type OpenCellMenuOption string
 
 var OpenCellMenuOptions = struct {
-	OPEN_CELL            OpenCellMenuOption
-	SET_QUESTION_MARK    OpenCellMenuOption
-	SET_MINE_MARK        OpenCellMenuOption
-	SAVE_AND_QUIT        OpenCellMenuOption
-	QUIT_WHITHOUT_SAVING OpenCellMenuOption
+	OPEN_CELL           OpenCellMenuOption
+	SET_QUESTION_MARK   OpenCellMenuOption
+	SET_MINE_MARK       OpenCellMenuOption
+	SAVE_AND_QUIT       OpenCellMenuOption
+	QUIT_WITHOUT_SAVING OpenCellMenuOption
 }{
-	OPEN_CELL:            "1",
-	SET_QUESTION_MARK:    "2",
-	SET_MINE_MARK:        "3",
-	SAVE_AND_QUIT:        "4",
-	QUIT_WHITHOUT_SAVING: "5",
+	OPEN_CELL:           "1",
+	SET_QUESTION_MARK:   "2",
+	SET_MINE_MARK:       "3",
+	SAVE_AND_QUIT:       "4",
+	QUIT_WITHOUT_SAVING: "5",
 }
 
 // returns one of the values in the var ui.OpenCellMenuOptions
@@ -102,7 +118,7 @@ func OpenCellMenu() OpenCellMenuOption {
 		}
 		switch OpenCellMenuOption(option) {
 		case OpenCellMenuOptions.OPEN_CELL,
-			OpenCellMenuOptions.SAVE_AND_QUIT, OpenCellMenuOptions.QUIT_WHITHOUT_SAVING,
+			OpenCellMenuOptions.SAVE_AND_QUIT, OpenCellMenuOptions.QUIT_WITHOUT_SAVING,
 			OpenCellMenuOptions.SET_MINE_MARK, OpenCellMenuOptions.SET_QUESTION_MARK:
 			return OpenCellMenuOption(option)
 		default:
@@ -159,7 +175,7 @@ func PrintBoard(cells [][]dtos.CellDTO) {
 					fmt.Print("@ ")
 				} else {
 					if cellDTO.Properties.AdjacentMines > 0 {
-						fmt.Print(cellDTO.Properties.AdjacentMines)
+						fmt.Print(cellDTO.Properties.AdjacentMines, " ")
 					} else {
 						fmt.Print(". ")
 					}
@@ -202,4 +218,14 @@ func parseInt(n string) int {
 		panic(err)
 	}
 	return intVar
+}
+
+func GameWon(cells [][]dtos.CellDTO) {
+	PrintBoard(cells)
+	fmt.Println(messages.YouWon)
+}
+
+func GameLost(cells [][]dtos.CellDTO) {
+	PrintBoard(cells)
+	fmt.Println(messages.YouLost)
 }

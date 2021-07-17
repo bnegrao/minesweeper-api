@@ -50,6 +50,4 @@ public class GameService {
         Game game = repository.save(converter.convertDTOtoEntity(dto));
         return converter.convertEntityToDTO(game);
     }
-
-
 }

@@ -34,6 +34,7 @@ var StartMenu = `
 Please choose one of the options bellow:
 1 - Start a new game
 2 - Resume a game
+q - Quit
 Option [1]: `
 
 var OpenCellMenu = `
@@ -42,8 +43,13 @@ Please choose one of the options bellow:
 2 - Set a question mark '?' in a cell
 3 - Set a mine mark '@' in a cell
 4 - Save your game and quit
-5 - Quit whithout saving
+5 - Quit without saving
 Option [1]: `
 
 var AskCellPosition = `
 Enter the cell position as two integers separated by space, ex: "1 1": `
+
+var YouWon = `
+You WON!!! Congratulations!!`
+var YouLost = `
+You LOST!! Sorry...`
