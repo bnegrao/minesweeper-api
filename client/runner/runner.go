@@ -9,7 +9,10 @@ import (
 	"github.com/bnegrao/minesweeper-api/client/runner/ui"
 )
 
-var msClient = minesweeper.New("http://localhost:8080/game")
+var awsServer = "http://minesweeperapi-env.eba-gpc4cmgm.us-west-2.elasticbeanstalk.com/game"
+
+//var localServer = "http://localhost:8080/game"
+var msClient = minesweeper.New(awsServer)
 
 func main() {
 	ui.PrintGameTitle()
@@ -34,6 +37,9 @@ func main() {
 				break
 			}
 			gameDTO, err = msClient.ResumeLastSession(playerEmail)
+			if err != nil {
+				break
+			}
 			ui.PrintStartDate(gameDTO.StartDate)
 		case ui.StartMenuOptions.QUIT:
 			os.Exit(0)
