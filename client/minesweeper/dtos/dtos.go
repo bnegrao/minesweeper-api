@@ -14,6 +14,7 @@ type CellPropertiesDTO struct {
 
 type CellDTO struct {
 	Properties *CellPropertiesDTO `json:"properties"`
+	Flag       string             `json:"flag"`
 }
 
 type GameDTO struct {

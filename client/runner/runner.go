@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -34,7 +33,7 @@ func main() {
 			if err != nil {
 				break
 			}
-			gameDTO, err = resumeLastGame(playerEmail)
+			gameDTO, err = msClient.ResumeLastSession(playerEmail)
 		case ui.StartMenuOptions.QUIT:
 			os.Exit(0)
 		default:
@@ -53,18 +52,25 @@ func main() {
 			ui.PrintBoard(gameDTO.Cells)
 			switch option {
 			case ui.OpenCellMenuOptions.OPEN_CELL:
-				var uiResponse *ui.GetCellPositionResponse
-				uiResponse, err = ui.GetCellPosition(len(gameDTO.Cells), len(gameDTO.Cells[0]))
+				var position *ui.GetCellPositionResponse
+				position, err = ui.GetCellPosition(len(gameDTO.Cells), len(gameDTO.Cells[0]))
 				if err != nil {
 					break
 				}
-				gameDTO, err = openCell(gameDTO.Id, uiResponse.Row, uiResponse.Column)
-			case ui.OpenCellMenuOptions.SET_QUESTION_MARK:
-				panic("Not Implemented")
-
-			case ui.OpenCellMenuOptions.SET_MINE_MARK:
-				panic("Not Implemented")
-
+				gameDTO, err = msClient.OpenCellAt(gameDTO.Id, position.Row-1, position.Column-1)
+			case ui.OpenCellMenuOptions.TOGGLE_QUESTION_MARK, ui.OpenCellMenuOptions.TOGGLE_MINE_MARK:
+				var position *ui.GetCellPositionResponse
+				position, err = ui.GetCellPosition(len(gameDTO.Cells), len(gameDTO.Cells[0]))
+				if err != nil {
+					break
+				}
+				var flag string
+				if option == ui.OpenCellMenuOptions.TOGGLE_MINE_MARK {
+					flag = "MINE"
+				} else {
+					flag = "QUESTION"
+				}
+				gameDTO, err = msClient.ToggleFlagAt(gameDTO.Id, position.Row-1, position.Column-1, flag)
 			case ui.OpenCellMenuOptions.SAVE_AND_QUIT:
 				panic("Not Implemented")
 
@@ -85,16 +91,6 @@ func main() {
 		}
 
 	}
-}
-
-func openCell(gameId string, row int, column int) (*dtos.GameDTO, error) {
-	// subtractin 1 from each position coordinate because the
-	// backend API handles positions starting from 0.
-	return msClient.OpenCellAt(gameId, row-1, column-1)
-}
-
-func resumeLastGame(playerEmail string) (*dtos.GameDTO, error) {
-	return nil, errors.New("Not implemented")
 }
 
 func startGame(options *ui.StartGameUIResponse) (*dtos.GameDTO, error) {

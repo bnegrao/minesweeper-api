@@ -33,15 +33,15 @@ var EnterNMines = `Please enter the number of mines in your game [10]: `
 var StartMenu = `
 Please choose one of the options bellow:
 1 - Start a new game
-2 - Resume a game
+2 - Resume the last running game session
 q - Quit
 Option [1]: `
 
 var OpenCellMenu = `
 Please choose one of the options bellow:
 1 - Open a cell
-2 - Set a question mark '?' in a cell
-3 - Set a mine mark '@' in a cell
+2 - Toggle a question mark '?' in a cell
+3 - Toggle a mine mark '#' in a cell
 4 - Save your game and quit
 5 - Quit without saving
 Option [1]: `
@@ -53,3 +53,5 @@ var YouWon = `
 You WON!!! Congratulations!!`
 var YouLost = `
 You LOST!! Sorry...`
+
+var ErrorEmptyEmail = "Email cannot be empty. Please try again."

@@ -44,9 +44,46 @@ func (client *Client) StartGame(startGameDTO dtos.StartGameDTO) (*dtos.GameDTO, 
 
 func (client *Client) OpenCellAt(gameId string, row int, column int) (*dtos.GameDTO, error) {
 
-	url := client.ServerUrl + "/" + gameId + "?row=" + intToString(row) + "&column=" + intToString(column)
+	url := client.ServerUrl + "/" + gameId + "/cell/" + intToString(row) + "-" + intToString(column)
 
 	httpRequest, err := http.NewRequest("PUT", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.httpClient.Do(httpRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return getGameDTOFromResponse(response, 200)
+}
+
+func (client *Client) ToggleFlagAt(gameId string, row int, column int, flag string) (*dtos.GameDTO, error) {
+	if !(flag == "MINE" || flag == "QUESTION") {
+		return nil, fmt.Errorf("Flag '%s' is invalid. Valid flags are '%s' and '%s'", flag, "MINE", "QUESTION")
+	}
+
+	url := client.ServerUrl + "/" + gameId + "/cell/" + intToString(row) + "-" + intToString(column) + "/flag/" + flag
+
+	httpRequest, err := http.NewRequest("PUT", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.httpClient.Do(httpRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return getGameDTOFromResponse(response, 200)
+}
+
+func (client *Client) ResumeLastSession(playerEmail string) (*dtos.GameDTO, error) {
+
+	url := client.ServerUrl + "?playerEmail=" + playerEmail
+
+	httpRequest, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}

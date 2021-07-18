@@ -2,7 +2,6 @@ package ui
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -94,17 +93,17 @@ func StartMenu() StartMenuOption {
 type OpenCellMenuOption string
 
 var OpenCellMenuOptions = struct {
-	OPEN_CELL           OpenCellMenuOption
-	SET_QUESTION_MARK   OpenCellMenuOption
-	SET_MINE_MARK       OpenCellMenuOption
-	SAVE_AND_QUIT       OpenCellMenuOption
-	QUIT_WITHOUT_SAVING OpenCellMenuOption
+	OPEN_CELL            OpenCellMenuOption
+	TOGGLE_QUESTION_MARK OpenCellMenuOption
+	TOGGLE_MINE_MARK     OpenCellMenuOption
+	SAVE_AND_QUIT        OpenCellMenuOption
+	QUIT_WITHOUT_SAVING  OpenCellMenuOption
 }{
-	OPEN_CELL:           "1",
-	SET_QUESTION_MARK:   "2",
-	SET_MINE_MARK:       "3",
-	SAVE_AND_QUIT:       "4",
-	QUIT_WITHOUT_SAVING: "5",
+	OPEN_CELL:            "1",
+	TOGGLE_QUESTION_MARK: "2",
+	TOGGLE_MINE_MARK:     "3",
+	SAVE_AND_QUIT:        "4",
+	QUIT_WITHOUT_SAVING:  "5",
 }
 
 // returns one of the values in the var ui.OpenCellMenuOptions
@@ -119,7 +118,7 @@ func OpenCellMenu() OpenCellMenuOption {
 		switch OpenCellMenuOption(option) {
 		case OpenCellMenuOptions.OPEN_CELL,
 			OpenCellMenuOptions.SAVE_AND_QUIT, OpenCellMenuOptions.QUIT_WITHOUT_SAVING,
-			OpenCellMenuOptions.SET_MINE_MARK, OpenCellMenuOptions.SET_QUESTION_MARK:
+			OpenCellMenuOptions.TOGGLE_MINE_MARK, OpenCellMenuOptions.TOGGLE_QUESTION_MARK:
 			return OpenCellMenuOption(option)
 		default:
 			fmt.Printf("Option '%s' is invalid, please try again", option)
@@ -169,7 +168,13 @@ func PrintBoard(cells [][]dtos.CellDTO) {
 			}
 			cellDTO := cells[row][col]
 			if cellDTO.Properties == nil {
-				fmt.Print("X ")
+				if cellDTO.Flag == "MINE" {
+					fmt.Print("# ")
+				} else if cellDTO.Flag == "QUESTION" {
+					fmt.Print("? ")
+				} else {
+					fmt.Print("X ")
+				}
 			} else {
 				if cellDTO.Properties.IsMine {
 					fmt.Print("@ ")
@@ -187,7 +192,17 @@ func PrintBoard(cells [][]dtos.CellDTO) {
 }
 
 func ResumeGame() (playerEmail string, err error) {
-	return "", errors.New("Not implemented")
+	for {
+		playerEmail, err := ReadInput(messages.EnterEmail, "asdf@asdf.com")
+		if err != nil {
+			return "", err
+		}
+		if playerEmail == "" {
+			fmt.Println(messages.ErrorEmptyEmail)
+			continue
+		}
+		return playerEmail, nil
+	}
 }
 
 func ReadInput(message string, defaultValue string) (string, error) {
