@@ -42,8 +42,7 @@ Please choose one of the options bellow:
 1 - Open a cell
 2 - Toggle a question mark '?' in a cell
 3 - Toggle a mine mark '#' in a cell
-4 - Save your game and quit
-5 - Quit without saving
+q - Quit saving your current running session
 Option [1]: `
 
 var AskCellPosition = `

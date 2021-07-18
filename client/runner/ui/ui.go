@@ -97,13 +97,11 @@ var OpenCellMenuOptions = struct {
 	TOGGLE_QUESTION_MARK OpenCellMenuOption
 	TOGGLE_MINE_MARK     OpenCellMenuOption
 	SAVE_AND_QUIT        OpenCellMenuOption
-	QUIT_WITHOUT_SAVING  OpenCellMenuOption
 }{
 	OPEN_CELL:            "1",
 	TOGGLE_QUESTION_MARK: "2",
 	TOGGLE_MINE_MARK:     "3",
-	SAVE_AND_QUIT:        "4",
-	QUIT_WITHOUT_SAVING:  "5",
+	SAVE_AND_QUIT:        "q",
 }
 
 // returns one of the values in the var ui.OpenCellMenuOptions
@@ -117,8 +115,9 @@ func OpenCellMenu() OpenCellMenuOption {
 		}
 		switch OpenCellMenuOption(option) {
 		case OpenCellMenuOptions.OPEN_CELL,
-			OpenCellMenuOptions.SAVE_AND_QUIT, OpenCellMenuOptions.QUIT_WITHOUT_SAVING,
-			OpenCellMenuOptions.TOGGLE_MINE_MARK, OpenCellMenuOptions.TOGGLE_QUESTION_MARK:
+			OpenCellMenuOptions.SAVE_AND_QUIT,
+			OpenCellMenuOptions.TOGGLE_MINE_MARK,
+			OpenCellMenuOptions.TOGGLE_QUESTION_MARK:
 			return OpenCellMenuOption(option)
 		default:
 			fmt.Printf("Option '%s' is invalid, please try again", option)
@@ -152,6 +151,7 @@ func StartGame() (*StartGameUIResponse, error) {
 }
 
 func PrintBoard(cells [][]dtos.CellDTO) {
+	fmt.Println()
 	// printing the columns header.
 	var padding = "      " // space for 5 digits
 	fmt.Print(padding)
@@ -233,6 +233,12 @@ func parseInt(n string) int {
 		panic(err)
 	}
 	return intVar
+}
+
+func PrintStartDate(startDate string) {
+	fmt.Println("###############################################")
+	fmt.Println("Game StartDate: " + startDate)
+	fmt.Println("###############################################")
 }
 
 func GameWon(cells [][]dtos.CellDTO) {

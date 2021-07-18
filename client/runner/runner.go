@@ -34,6 +34,7 @@ func main() {
 				break
 			}
 			gameDTO, err = msClient.ResumeLastSession(playerEmail)
+			ui.PrintStartDate(gameDTO.StartDate)
 		case ui.StartMenuOptions.QUIT:
 			os.Exit(0)
 		default:
@@ -49,9 +50,9 @@ func main() {
 			ui.PrintBoard(gameDTO.Cells)
 			var err error
 			option := ui.OpenCellMenu()
-			ui.PrintBoard(gameDTO.Cells)
 			switch option {
 			case ui.OpenCellMenuOptions.OPEN_CELL:
+				ui.PrintBoard(gameDTO.Cells)
 				var position *ui.GetCellPositionResponse
 				position, err = ui.GetCellPosition(len(gameDTO.Cells), len(gameDTO.Cells[0]))
 				if err != nil {
@@ -59,6 +60,7 @@ func main() {
 				}
 				gameDTO, err = msClient.OpenCellAt(gameDTO.Id, position.Row-1, position.Column-1)
 			case ui.OpenCellMenuOptions.TOGGLE_QUESTION_MARK, ui.OpenCellMenuOptions.TOGGLE_MINE_MARK:
+				ui.PrintBoard(gameDTO.Cells)
 				var position *ui.GetCellPositionResponse
 				position, err = ui.GetCellPosition(len(gameDTO.Cells), len(gameDTO.Cells[0]))
 				if err != nil {
@@ -72,12 +74,8 @@ func main() {
 				}
 				gameDTO, err = msClient.ToggleFlagAt(gameDTO.Id, position.Row-1, position.Column-1, flag)
 			case ui.OpenCellMenuOptions.SAVE_AND_QUIT:
-				panic("Not Implemented")
-
-			case ui.OpenCellMenuOptions.QUIT_WITHOUT_SAVING:
-				panic("Not Implemented")
+				os.Exit(0)
 			}
-
 			if err != nil {
 				fmt.Printf("Error: %s\n", err)
 				continue
