@@ -3,6 +3,8 @@ package com.zica.minesweeper.api.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 
+import java.util.Objects;
+
 @ApiModel(description = "Properties of a CellDTO. This object is only visible after a Cell is opened")
 public class CellPropertiesDTO {
 
@@ -30,5 +32,19 @@ public class CellPropertiesDTO {
     @JsonProperty("isMine")
     public void setMine(boolean mine) {
         isMine = mine;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CellPropertiesDTO that = (CellPropertiesDTO) o;
+        return adjacentMines == that.adjacentMines &&
+                isMine == that.isMine;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(adjacentMines, isMine);
     }
 }

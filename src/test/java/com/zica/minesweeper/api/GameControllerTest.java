@@ -3,8 +3,9 @@ package com.zica.minesweeper.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zica.minesweeper.RestfulApiApplication;
-import com.zica.minesweeper.api.dto.response.GameDTO;
 import com.zica.minesweeper.api.dto.request.StartGameDTO;
+import com.zica.minesweeper.api.dto.response.CellDTO;
+import com.zica.minesweeper.api.dto.response.GameDTO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +115,30 @@ public class GameControllerTest {
                 .andExpect(status().isBadRequest());
 
     }
+
+    @Test
+    public void testResumeGameSession() throws Exception {
+        long millis = System.currentTimeMillis();
+        String playerEmail = "asdf"+millis+"@asdf.com";
+        GameDTO gameDTO = postNewGame(new StartGameDTO(playerEmail, 5, 5, 3));
+        MvcResult result = mvc.perform(get("/game/")
+                .param("playerEmail", playerEmail))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = result.getResponse().getContentAsString();
+        GameDTO gameDTO2 = objectMapper.readValue(responseBody, GameDTO.class);
+
+        CellDTO[][] cells = gameDTO.getCells();
+
+        for (int row = 0;row<cells.length; row++){
+            for (int col = 0; col<cells[0].length; col++) {
+                assertEquals(cells[row][col].getProperties(), gameDTO2.getCells()[row][col].getProperties());
+            }
+        }
+    }
+
 
     private GameDTO postNewGame(StartGameDTO startGameDTO) throws Exception {
         MvcResult result = mvc.perform(post("/game")

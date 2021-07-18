@@ -2,7 +2,7 @@ package com.zica.minesweeper.api;
 
 import com.zica.minesweeper.api.dto.request.StartGameDTO;
 import com.zica.minesweeper.api.dto.response.GameDTO;
-import com.zica.minesweeper.api.exceptions.GameIdNotFoundException;
+import com.zica.minesweeper.api.exceptions.GameNotFoundException;
 import com.zica.minesweeper.api.exceptions.InvalidCellPositionException;
 import com.zica.minesweeper.game.Game;
 import com.zica.minesweeper.game.GameIsOverException;
@@ -10,6 +10,7 @@ import com.zica.minesweeper.game.OpenCellResult;
 import com.zica.minesweeper.repository.GameRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -28,10 +29,10 @@ public class GameService {
      * If after opening the Cell is detected that the game is over, the Game is deleted
      * from the database.
      */
-    public GameDTO openCell(String gameId, int row, int column) throws GameIdNotFoundException, InvalidCellPositionException, GameIsOverException {
+    public GameDTO openCell(String gameId, int row, int column) throws GameNotFoundException, InvalidCellPositionException, GameIsOverException {
         Optional<Game> opGame = repository.findById(gameId);
         if (opGame.isEmpty()){
-            throw new GameIdNotFoundException("Game with id " + gameId + " does not exist");
+            throw new GameNotFoundException("Game with id " + gameId + " does not exist");
         }
         Game game = opGame.get();
         OpenCellResult openCellResult = game.openCellAt(row, column);
@@ -49,5 +50,13 @@ public class GameService {
     public GameDTO startGame(StartGameDTO dto){
         Game game = repository.save(converter.convertDTOtoEntity(dto));
         return converter.convertEntityToDTO(game);
+    }
+
+    public GameDTO resumeGame(String playerEmail) throws GameNotFoundException {
+        List<Game> games = repository.findByPlayerEmail(playerEmail);
+        if (games == null || games.size() == 0){
+            throw new GameNotFoundException("Cannot find a game session for user " + playerEmail);
+        }
+        return converter.convertEntityToDTO(games.get(0));
     }
 }
