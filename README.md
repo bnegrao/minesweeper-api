@@ -23,7 +23,7 @@ The API client library is written in Golang and is in the folder [client/mineswe
 
 I created an executable to run the game in the console. It will use the client lib to connect to the server on AWS and play the game.
 
-I already built binaries for linux and windows, they are in the folder [client/runner/dist].
+I already built binaries for linux and windows, they are in the folder [client/runner/dist](client/runner/dist).
 
 Please download the binary that suites your local computer and run it:
 
