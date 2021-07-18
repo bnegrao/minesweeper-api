@@ -161,13 +161,11 @@ public class GameControllerTest {
     public void testToggleCellFlag() throws Exception {
         GameDTO game = postNewGame(new StartGameDTO(playerEmail, 5, 5, 5));
 
-        mvc.perform(put("/game/" + game.getId() + "/cell/0-0/flag")
-                .param("flag", "MINE"))
+        mvc.perform(put("/game/" + game.getId() + "/cell/0-0/flag/MINE"))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        MvcResult result = mvc.perform(put("/game/" + game.getId() + "/cell/0-1/flag")
-                .param("flag", "QUESTION"))
+        MvcResult result = mvc.perform(put("/game/" + game.getId() + "/cell/0-1/flag/QUESTION"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();

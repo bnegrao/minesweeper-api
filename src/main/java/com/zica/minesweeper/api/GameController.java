@@ -97,12 +97,14 @@ public class GameController {
                     " be modified because it is not in RUNNING status'", response = DefaultErrorAttributes.class),
             @ApiResponse(code = 404, message = "the gameId was not found", response = DefaultErrorAttributes.class),
     })
-    @ApiOperation(value = "Toggles a flag (MINE|QUESTION) in a cell. " +
-            "The {position} path parameter is a string made of two integers separated by '-', ex: 1-3")
-    @PutMapping("{gameId}/cell/{position}/flag")
+    @ApiOperation(value = "Toggles a flag in a cell. " +
+            "The {position} path parameter is a string made of two integers separated by '-', ex: 1-3" +
+            "The {flag} path parameter can be 'MINE|QUESTION'. " +
+            "To unset a flag, just set the same flag at the same position.")
+    @PutMapping("{gameId}/cell/{position}/flag/{flag}")
     public GameDTO toggleCellFlag(@PathVariable String gameId,
                                   @PathVariable @Pattern(regexp = "\\d+,\\d+") String position,
-                                  @RequestParam @Pattern(regexp = "MINE|QUESTION") String flag) {
+                                  @PathVariable @Pattern(regexp = "MINE|QUESTION") String flag) {
         Cell.Flags cellFlag;
         if (flag.equals("MINE")) {
             cellFlag = Cell.Flags.MINE;
