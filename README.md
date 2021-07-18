@@ -15,10 +15,22 @@ I didn't refactor the classes to separate the model (the data that should be per
 I am aware the best practice is to have model and business logic separated and I would refactor the code if 
 I had more time. 
 
-## Client API
+## Client Lib
 
 The API client library is written in Golang and is in the folder [client/minesweeper](client/minesweeper)
 
-## Client APP
+## Client App
 
-There is a
+I created an executable to run the game in the console. It will use the client lib to connect to the server on AWS and play the game.
+
+I already built binaries for linux and windows, they are in the folder [client/runner/dist].
+
+Please download the binary that suites your local computer and run it:
+
+```
+./runner
+```
+
+###### Client APP Implementation notes
+
+To keep it simple I hardcoded the url for the api server in the runner code.
