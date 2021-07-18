@@ -25,7 +25,7 @@ var GameTitle = `
  It is a pleasure to have you here!
 `
 
-var EnterEmail = `Please enter your email [asdf@asdf.com]: `
+var EnterEmail = `Please enter your email: `
 var EnterNRows = `Please enter the number of rows in your game [9]: `
 var EnterNColumns = `Please enter the number of columns in your game [9]: `
 var EnterNMines = `Please enter the number of mines in your game [10]: `

@@ -193,7 +193,7 @@ func PrintBoard(cells [][]dtos.CellDTO) {
 
 func ResumeGame() (playerEmail string, err error) {
 	for {
-		playerEmail, err := ReadInput(messages.EnterEmail, "asdf@asdf.com")
+		playerEmail, err := ReadInput(messages.EnterEmail, "")
 		if err != nil {
 			return "", err
 		}
