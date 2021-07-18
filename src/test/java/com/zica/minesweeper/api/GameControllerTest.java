@@ -117,10 +117,12 @@ public class GameControllerTest {
     }
 
     @Test
-    public void testResumeGameSession() throws Exception {
+    public void testFindLastRunningGameSession() throws Exception {
         long millis = System.currentTimeMillis();
         String playerEmail = "asdf"+millis+"@asdf.com";
-        GameDTO gameDTO = postNewGame(new StartGameDTO(playerEmail, 5, 5, 3));
+        GameDTO gameSession1 = postNewGame(new StartGameDTO(playerEmail, 5, 5, 5));
+        GameDTO gameSession2 = postNewGame(new StartGameDTO(playerEmail, 9, 9, 9));
+
         MvcResult result = mvc.perform(get("/game/")
                 .param("playerEmail", playerEmail))
                 .andDo(print())
@@ -128,17 +130,19 @@ public class GameControllerTest {
                 .andReturn();
 
         String responseBody = result.getResponse().getContentAsString();
-        GameDTO gameDTO2 = objectMapper.readValue(responseBody, GameDTO.class);
+        GameDTO gameFound = objectMapper.readValue(responseBody, GameDTO.class);
 
-        CellDTO[][] cells = gameDTO.getCells();
+        assertEquals(gameSession2.getId(), gameFound.getId());
+        assertEquals(gameSession2.getStartDate(), gameFound.getStartDate());
+
+        CellDTO[][] cells = gameSession2.getCells();
 
         for (int row = 0;row<cells.length; row++){
             for (int col = 0; col<cells[0].length; col++) {
-                assertEquals(cells[row][col].getProperties(), gameDTO2.getCells()[row][col].getProperties());
+                assertEquals(cells[row][col].getProperties(), gameFound.getCells()[row][col].getProperties());
             }
         }
     }
-
 
     private GameDTO postNewGame(StartGameDTO startGameDTO) throws Exception {
         MvcResult result = mvc.perform(post("/game")

@@ -76,11 +76,11 @@ public class GameController {
             @ApiResponse(code = 400, message = "param playerEmail is not a valid email", response = GameDTO.class),
             @ApiResponse(code = 404, message = "the gameId was not found", response = DefaultErrorAttributes.class),
     })
-    @ApiOperation(value = "Finds the RUNNING Game session associated with a playerEmail if it exists")
+    @ApiOperation(value = "Finds the last RUNNING Game session associated with a playerEmail")
     @GetMapping
-    public GameDTO resumeGame(@RequestParam @Email String playerEmail) {
+    public GameDTO findLastRunningGameSession(@RequestParam @Email String playerEmail) {
         try{
-            return service.resumeGame(playerEmail);
+            return service.findLastRunningGameSession(playerEmail);
         } catch (GameNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }

@@ -52,11 +52,16 @@ public class GameService {
         return converter.convertEntityToDTO(game);
     }
 
-    public GameDTO resumeGame(String playerEmail) throws GameNotFoundException {
-        List<Game> games = repository.findByPlayerEmail(playerEmail);
-        if (games == null || games.size() == 0){
-            throw new GameNotFoundException("Cannot find a game session for user " + playerEmail);
+    public GameDTO findLastRunningGameSession(String playerEmail) throws GameNotFoundException {
+        List<Game> games = repository.findByPlayerEmailOrderByStartDateDesc(playerEmail);
+
+        for (Game game: games){
+            if (game.getGameStatus() == Game.GameStatus.RUNNING) {
+                return converter.convertEntityToDTO(game);
+            }
         }
-        return converter.convertEntityToDTO(games.get(0));
+
+        throw new GameNotFoundException("Cannot find the last running game session for user " + playerEmail);
+
     }
 }
