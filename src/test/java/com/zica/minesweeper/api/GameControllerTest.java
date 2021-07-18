@@ -6,6 +6,10 @@ import com.zica.minesweeper.RestfulApiApplication;
 import com.zica.minesweeper.api.dto.request.StartGameDTO;
 import com.zica.minesweeper.api.dto.response.CellDTO;
 import com.zica.minesweeper.api.dto.response.GameDTO;
+import com.zica.minesweeper.game.Game;
+import com.zica.minesweeper.repository.GameRepository;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,13 +42,31 @@ public class GameControllerTest {
     ObjectMapper objectMapper;
 
     @Autowired
+    GameRepository repository;
+
+    private String playerEmail;
+
+    @Autowired
     private MockMvc mvc;
+
+    @Before
+    public void setPlayerEmail() {
+        playerEmail = "test-" + System.currentTimeMillis() + "@test.com";
+    }
+
+    @After
+    public void cleanDB() {
+        List<Game> games = repository.findByPlayerEmailOrderByStartDateDesc(playerEmail);
+        for (Game game: games){
+            repository.delete(game);
+        }
+    }
 
     @Test
     public void startGameTest() throws Exception {
-        GameDTO gameDTO = postNewGame(new StartGameDTO("asdf@asdf.com", 5, 5, 3));
+        GameDTO gameDTO = postNewGame(new StartGameDTO(playerEmail, 5, 5, 3));
 
-        assertEquals("asdf@asdf.com", gameDTO.getPlayerEmail());
+        assertEquals(playerEmail, gameDTO.getPlayerEmail());
         assertNotNull(gameDTO.getId());
         assertEquals(GameDTO.GameStatus.RUNNING, gameDTO.getGameStatus());
         assertEquals(5, gameDTO.getCells().length);
@@ -52,13 +76,10 @@ public class GameControllerTest {
 
     @Test
     public void testOpenExistingClosedCell_thenItsPropertiesShouldBecomeVisible() throws Exception {
-        GameDTO gameDTO = postNewGame(new StartGameDTO("asdf@asdf.com", 5, 5, 3));
+        GameDTO gameDTO = postNewGame(new StartGameDTO(playerEmail, 5, 5, 3));
         String gameId = gameDTO.getId();
 
-        // opening cell at position 0,0
-        MvcResult result = mvc.perform(put("/game/" + gameId)
-                .param("row", "0")
-                .param("column", "0"))
+        MvcResult result = mvc.perform(put("/game/" + gameId + "/cell/0-0"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -78,13 +99,11 @@ public class GameControllerTest {
     @Test
     public void testOpenCellAfterGameIsOver_thenShouldReceive404GameNotFound() throws Exception {
 
-        GameDTO gameDTO = postNewGame(new StartGameDTO("asdf@asdf.com", 5, 5, 0));
+        GameDTO gameDTO = postNewGame(new StartGameDTO(playerEmail, 5, 5, 0));
         String gameId = gameDTO.getId();
 
         // opening cell at position 0,0
-        MvcResult result = mvc.perform(put("/game/" + gameId)
-                .param("row", "0")
-                .param("column", "0"))
+        MvcResult result = mvc.perform(put("/game/" + gameId + "/cell/0-0"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -94,9 +113,7 @@ public class GameControllerTest {
 
         assertEquals(GameDTO.GameStatus.GAME_WON, gameDTO.getGameStatus());
 
-        mvc.perform(put("/game/" + gameId)
-                .param("row", "0")
-                .param("column", "0"))
+        mvc.perform(put("/game/" + gameId + "/0-0"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -104,13 +121,11 @@ public class GameControllerTest {
 
     @Test
     public void testOpeningACellInInvalidPosition_thenResultShouldBeHttp400() throws Exception {
-        GameDTO gameDTO = postNewGame(new StartGameDTO("asdf@asdf.com", 5, 5, 3));
+        GameDTO gameDTO = postNewGame(new StartGameDTO(playerEmail, 5, 5, 3));
         String gameId = gameDTO.getId();
 
         // opening cell at position 6,-1
-        mvc.perform(put("/game/" + gameId)
-                .param("row", "6")
-                .param("column", "-1"))
+        mvc.perform(put("/game/" + gameId + "/cell/6-1"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -118,8 +133,6 @@ public class GameControllerTest {
 
     @Test
     public void testFindLastRunningGameSession() throws Exception {
-        long millis = System.currentTimeMillis();
-        String playerEmail = "asdf"+millis+"@asdf.com";
         GameDTO gameSession1 = postNewGame(new StartGameDTO(playerEmail, 5, 5, 5));
         GameDTO gameSession2 = postNewGame(new StartGameDTO(playerEmail, 9, 9, 9));
 
@@ -142,6 +155,29 @@ public class GameControllerTest {
                 assertEquals(cells[row][col].getProperties(), gameFound.getCells()[row][col].getProperties());
             }
         }
+    }
+
+    @Test
+    public void testToggleCellFlag() throws Exception {
+        GameDTO game = postNewGame(new StartGameDTO(playerEmail, 5, 5, 5));
+
+        mvc.perform(put("/game/" + game.getId() + "/cell/0-0/flag")
+                .param("flag", "MINE"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        MvcResult result = mvc.perform(put("/game/" + game.getId() + "/cell/0-1/flag")
+                .param("flag", "QUESTION"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = result.getResponse().getContentAsString();
+        game = objectMapper.readValue(responseBody, GameDTO.class);
+
+        assertEquals("MINE", game.getCells()[0][0].getFlag());
+        assertEquals("QUESTION", game.getCells()[0][1].getFlag());
+
     }
 
     private GameDTO postNewGame(StartGameDTO startGameDTO) throws Exception {

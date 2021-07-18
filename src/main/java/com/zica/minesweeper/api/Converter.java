@@ -49,6 +49,9 @@ public class Converter {
 
     public CellDTO convertEntityToDTO(Cell cell) {
         CellDTO cellDTO = new CellDTO();
+        if (cell.getFlag() != null){
+            cellDTO.setFlag(cell.getFlag().name());
+        }
         if (cell.isOpened()){
             cellDTO.setProperties(new CellPropertiesDTO(cell.getAdjacentMines(), cell.isMine()));
         }

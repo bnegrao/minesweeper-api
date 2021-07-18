@@ -4,9 +4,7 @@ import com.zica.minesweeper.api.dto.request.StartGameDTO;
 import com.zica.minesweeper.api.dto.response.GameDTO;
 import com.zica.minesweeper.api.exceptions.GameNotFoundException;
 import com.zica.minesweeper.api.exceptions.InvalidCellPositionException;
-import com.zica.minesweeper.game.Game;
-import com.zica.minesweeper.game.GameIsOverException;
-import com.zica.minesweeper.game.OpenCellResult;
+import com.zica.minesweeper.game.*;
 import com.zica.minesweeper.repository.GameRepository;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +60,20 @@ public class GameService {
         }
 
         throw new GameNotFoundException("Cannot find the last running game session for user " + playerEmail);
+    }
 
+    public GameDTO toggleFlagAt(String gameId, int row, int column, Cell.Flags flag) throws GameNotFoundException, GameIsOverException, InvalidCellPositionException {
+        Optional<Game> opGame = repository.findById(gameId);
+        if (opGame.isEmpty()){
+            throw new GameNotFoundException("Game with id " + gameId + " does not exist");
+        }
+        Game game = opGame.get();
+        ToggleFlagResult result = game.toggleFlagAt(row, column, flag);
+
+        if (result.equals(ToggleFlagResult.INVALID_POSITION)){
+            throw new InvalidCellPositionException(row,column);
+        }
+        repository.save(game);
+        return converter.convertEntityToDTO(game);
     }
 }

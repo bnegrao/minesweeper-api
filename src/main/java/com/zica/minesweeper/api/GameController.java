@@ -4,6 +4,7 @@ import com.zica.minesweeper.api.dto.request.StartGameDTO;
 import com.zica.minesweeper.api.dto.response.GameDTO;
 import com.zica.minesweeper.api.exceptions.GameNotFoundException;
 import com.zica.minesweeper.api.exceptions.InvalidCellPositionException;
+import com.zica.minesweeper.game.Cell;
 import com.zica.minesweeper.game.GameIsOverException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.Pattern;
 
 @Api(value = "/game")
 @RestController
@@ -55,11 +57,14 @@ public class GameController {
                     " be modified because it is not in RUNNING status'", response = DefaultErrorAttributes.class),
             @ApiResponse(code = 404, message = "the gameId was not found", response = DefaultErrorAttributes.class),
     })
-    @ApiOperation(value = "Finds a Game by its gameId, opens the Cell at the position given in the query-string " +
-            "and returns an updated GameDTO. The property GameDTO.gameStatus may have changed after this operation.")
-    @PutMapping("{gameId}")
-    public GameDTO openCell(@PathVariable String gameId, @RequestParam int row, @RequestParam int column){
+    @ApiOperation(value = "Finds a Game by its gameId, opens the Cell at specified {position}" +
+            "and returns an updated GameDTO. The property GameDTO.gameStatus may have changed after this operation."+
+            "The {position} path parameter is a string made of two integers separated by '-', ex: 1-3")
+    @PutMapping("{gameId}/cell/{position}")
+    public GameDTO openCell(@PathVariable String gameId, @PathVariable @Pattern(regexp = "\\d+,\\d+") String position){
         try {
+            int row = Integer.parseInt(position.split("-")[0]);
+            int column = Integer.parseInt(position.split("-")[1]);
             return service.openCell(gameId, row, column);
         } catch (InvalidCellPositionException | GameIsOverException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
@@ -81,6 +86,36 @@ public class GameController {
     public GameDTO findLastRunningGameSession(@RequestParam @Email String playerEmail) {
         try{
             return service.findLastRunningGameSession(playerEmail);
+        } catch (GameNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
+    }
+
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Success", response = GameDTO.class),
+            @ApiResponse(code = 400, message = "'the cell position invalid' OR 'the specified Game cannot" +
+                    " be modified because it is not in RUNNING status'", response = DefaultErrorAttributes.class),
+            @ApiResponse(code = 404, message = "the gameId was not found", response = DefaultErrorAttributes.class),
+    })
+    @ApiOperation(value = "Toggles a flag (MINE|QUESTION) in a cell. " +
+            "The {position} path parameter is a string made of two integers separated by '-', ex: 1-3")
+    @PutMapping("{gameId}/cell/{position}/flag")
+    public GameDTO toggleCellFlag(@PathVariable String gameId,
+                                  @PathVariable @Pattern(regexp = "\\d+,\\d+") String position,
+                                  @RequestParam @Pattern(regexp = "MINE|QUESTION") String flag) {
+        Cell.Flags cellFlag;
+        if (flag.equals("MINE")) {
+            cellFlag = Cell.Flags.MINE;
+        } else {
+            cellFlag = Cell.Flags.QUESTION;
+        }
+        int row = Integer.parseInt(position.split("-")[0]);
+        int column = Integer.parseInt(position.split("-")[1]);
+
+        try {
+            return service.toggleFlagAt(gameId, row, column, cellFlag);
+        } catch (InvalidCellPositionException | GameIsOverException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         } catch (GameNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }

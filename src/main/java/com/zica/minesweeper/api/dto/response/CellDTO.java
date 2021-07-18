@@ -7,6 +7,16 @@ public class CellDTO {
 
     private CellPropertiesDTO properties;
 
+    private String flag;
+
+    public String getFlag() {
+        return flag;
+    }
+
+    public void setFlag(String flag) {
+        this.flag = flag;
+    }
+
     /**
      * @return CellDTO.Properties if the Cell is opened, or null if it is closed
      */
