@@ -23,7 +23,7 @@ func New(serverUrl string) *Client {
 	client := new(Client)
 	client.ServerUrl = serverUrl
 	client.httpClient = http.Client{
-		Timeout: 50000 * time.Second,
+		Timeout: 5000 * time.Second,
 	}
 	return client
 }
