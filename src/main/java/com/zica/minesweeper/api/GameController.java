@@ -57,7 +57,7 @@ public class GameController {
                     " be modified because it is not in RUNNING status'", response = DefaultErrorAttributes.class),
             @ApiResponse(code = 404, message = "the gameId was not found", response = DefaultErrorAttributes.class),
     })
-    @ApiOperation(value = "Finds a Game by its gameId, opens the Cell at specified {position}" +
+    @ApiOperation(value = "Opens the Cell at specified {position}" +
             "and returns an updated GameDTO. The property GameDTO.gameStatus may have changed after this operation."+
             "The {position} path parameter is a string made of two integers separated by '-', ex: 1-3")
     @PutMapping("{gameId}/cell/{position}")
